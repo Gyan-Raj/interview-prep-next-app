@@ -7,28 +7,21 @@ type Theme = "light" | "dark";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
     const systemDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
+    const initial = stored ?? (systemDark ? "dark" : "light");
 
-    const initialTheme = stored ?? (systemDark ? "dark" : "light");
-    console.log(initialTheme, "initialTheme");
-
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
-
-    setTheme(initialTheme);
-    setMounted(true);
+    document.documentElement.setAttribute("data-theme", initial);
+    setTheme(initial);
   }, []);
-
-  if (!mounted) return null;
 
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
-    document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("theme", next);
     setTheme(next);
   }
@@ -37,11 +30,18 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="group rounded-md p-2 cursor-pointer transition-colors duration-200 hover:bg-black dark:hover:bg-neutral-800"
+      className="rounded-md p-2 transition cursor-pointer"
+      style={{
+        backgroundColor: "transparent",
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.backgroundColor = "var(--color-border)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.backgroundColor = "transparent")
+      }
     >
-      <span className="block transition-colors duration-200 dark:group-hover:text-neutral-200">
-        {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-      </span>
+      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
     </button>
   );
 }

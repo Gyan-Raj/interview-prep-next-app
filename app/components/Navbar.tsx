@@ -13,33 +13,35 @@ type NavbarProps = {
 
 export default function Navbar({ user }: NavbarProps) {
   return (
-    <header className="h-14 w-full border-b border-neutral-200 dark:border-neutral-800">
+    <header
+      className="h-14 w-full border-b"
+      style={{ borderColor: "var(--color-border)" }}
+    >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
-        {/* Left: App name */}
-        <div className="text-lg font-semibold tracking-tight">
-          Interview Ready
-        </div>
+        {/* App name */}
+        <div className="text-lg font-semibold">Interview Ready</div>
 
-        {/* Right: Actions */}
+        {/* Actions */}
         <div className="flex items-center gap-3">
-          {/* Theme toggle */}
           <ThemeToggle />
 
-          {/* Authenticated user area (future-proof) */}
           {user && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-neutral-600 dark:text-neutral-300">
+              <span className="text-sm" style={{ color: "var(--color-text)" }}>
                 {user.name}
               </span>
 
-              <div className="h-8 w-8 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-700">
-                {user.avatarUrl ? (
+              <div
+                className="h-8 w-8 overflow-hidden rounded-full"
+                style={{ backgroundColor: "var(--color-border)" }}
+              >
+                {user.avatarUrl && (
                   <img
                     src={user.avatarUrl}
                     alt={user.name}
                     className="h-full w-full object-cover"
                   />
-                ) : null}
+                )}
               </div>
             </div>
           )}

@@ -1,18 +1,31 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --bg: white;
-    --fg: black;
-  }
+/* Default theme: LIGHT */
+:root {
+  --color-bg: #f8fafc;
+  --color-panel: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #0f172a;
+  --color-accent: #38bdf8;
 
-  html.dark {
-    --bg: #020617;
-    --fg: #e5e7eb;
-  }
+  --radius-card: 12px;
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 
-  body {
-    background-color: var(--bg);
-    color: var(--fg);
-  }
+/* Dark theme */
+[data-theme="dark"] {
+  --color-bg: #0f172a;
+  --color-panel: #020617;
+  --color-border: #1e293b;
+  --color-text: #e5e7eb;
+  --color-accent: #38bdf8;
+
+  --radius-card: 12px;
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Base element wiring */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }

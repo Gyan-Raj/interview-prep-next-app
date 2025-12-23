@@ -1,7 +1,9 @@
+import SignIn from "@/app/components/SignIn";
+
 export default function Home() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold mt-4">Hello World</h1>
+    <main className="h-[calc(100vh-3.5rem)] overflow-hidden flex items-center justify-center">
+      <SignIn />
     </main>
   );
 }
