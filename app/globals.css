@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: white;
+    --fg: black;
+  }
+
+  html.dark {
+    --bg: #020617;
+    --fg: #e5e7eb;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+}
