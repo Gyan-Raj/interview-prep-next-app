@@ -2,6 +2,7 @@
 
 import { login } from "@/app/actions";
 import { useFormik } from "formik";
+import { useRouter } from "next/navigation";
 import * as yup from "yup";
 
 const initialValues = {
@@ -15,13 +16,16 @@ const validationSchema = yup.object({
 });
 
 export default function SignIn() {
+  const router = useRouter();
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: async (values) => {
       try {
         const res = await login(values);
-        console.log("Login success:", res);
+        if (res?.status == 200) {
+          router.replace("/dashboard");
+        }
       } catch (error) {
         console.error("Error logging in (SignIn):", error);
       }

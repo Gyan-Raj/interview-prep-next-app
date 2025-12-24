@@ -14,7 +14,7 @@ const api = axios.create({
 export async function login(payload) {
   try {
     const res = await api.post("/login", payload);
-    console.log(res, "res: login");
+    return res;
   } catch (error) {
     console.error("Error logging in (login): ", error);
   }

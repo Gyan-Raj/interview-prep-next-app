@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/db/prisma";
 
 const secretKey = process.env.SECRET_KEY!;
 
@@ -18,13 +18,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        activeRole: true,
+      },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -35,11 +35,18 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!user.activeRole) {
+      return NextResponse.json(
+        { message: "User has no active role" },
+        { status: 403 }
+      );
+    }
+
     const payload = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
+      role: user.activeRole.name,
     };
 
     const accessToken = jwt.sign(payload, secretKey, {
@@ -50,15 +57,24 @@ export async function POST(req: Request) {
       expiresIn: "90d",
     });
 
-    await prisma.user.update({
-      where: { id: user.id },
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+    await prisma.session.create({
       data: {
-        refreshToken: await bcrypt.hash(refreshToken, 10),
+        userId: user.id,
+        refreshToken: hashedRefreshToken,
+        userAgent: req.headers.get("user-agent"),
+        ipAddress:
+          req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip"),
+        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       },
     });
 
     const response = NextResponse.json(
-      { message: "Logged in successfully", data: payload },
+      {
+        message: "Logged in successfully",
+        data: payload,
+      },
       { status: 200 }
     );
 
