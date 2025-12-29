@@ -1,0 +1,30 @@
+import { LayoutDashboard, Users, Settings } from "lucide-react";
+import { roleDashboardRoute } from "../utils/utils";
+
+export const SIDEBAR_MENU = {
+  Admin: [
+    {
+      label: "Dashboard",
+      href: roleDashboardRoute.ADMIN,
+      icon: LayoutDashboard,
+    },
+    { label: "Users", href: "/admin/manage", icon: Users },
+    { label: "Settings", href: "/admin/settings", icon: Settings },
+  ],
+
+  "Resource Manager": [
+    {
+      label: "Dashboard",
+      href: roleDashboardRoute["RESOURCE MANAGER"],
+      icon: LayoutDashboard,
+    },
+  ],
+
+  Resource: [
+    {
+      label: "Dashboard",
+      href: roleDashboardRoute.RESOURCE,
+      icon: LayoutDashboard,
+    },
+  ],
+};

@@ -16,9 +16,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // 1️⃣ Fetch user with roles
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
+        roles: {
+          include: { role: true },
+        },
         activeRole: true,
       },
     });
@@ -27,6 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
+    // 2️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
@@ -35,18 +40,33 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!user.activeRole) {
+    // 3️⃣ Ensure user has at least one role
+    if (!user.roles.length) {
       return NextResponse.json(
-        { message: "User has no active role" },
+        { message: "User has no assigned roles" },
         { status: 403 }
       );
     }
 
+    // 4️⃣ Resolve active role
+    let activeRole = user.activeRole;
+
+    if (!activeRole) {
+      activeRole = user.roles[0].role;
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { activeRoleId: activeRole.id },
+      });
+    }
+
+    // 5️⃣ JWT payload uses ACTIVE role only
     const payload = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.activeRole.name,
+      activeRole: activeRole,
+      roles: user.roles.map((ur) => ur.role),
     };
 
     const accessToken = jwt.sign(payload, secretKey, {
@@ -57,6 +77,7 @@ export async function POST(req: Request) {
       expiresIn: "90d",
     });
 
+    // 6️⃣ Persist session
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
     await prisma.session.create({
@@ -70,10 +91,17 @@ export async function POST(req: Request) {
       },
     });
 
+    // 7️⃣ Response includes available roles
     const response = NextResponse.json(
       {
         message: "Logged in successfully",
-        data: payload,
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          activeRole: activeRole,
+          roles: user.roles.map((ur) => ur.role),
+        },
       },
       { status: 200 }
     );

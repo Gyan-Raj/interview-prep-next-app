@@ -4,6 +4,8 @@ import { login } from "@/app/actions";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import * as yup from "yup";
+import { roleDashboardRoute } from "../utils/utils";
+import { Role } from "../types";
 
 const initialValues = {
   email: "",
@@ -18,13 +20,17 @@ const validationSchema = yup.object({
 export default function SignIn() {
   const router = useRouter();
   const formik = useFormik({
-    initialValues,
+    initialValues: { email: "", password: "" },
     validationSchema,
     onSubmit: async (values) => {
       try {
         const res = await login(values);
-        if (res?.status == 200) {
-          router.replace("/dashboard");
+
+        if (res?.status === 200) {
+          const activeRole: Role = res.data.data.activeRole;
+
+          const dashboard = roleDashboardRoute[activeRole.name];
+          router.replace(dashboard);
         }
       } catch (error) {
         console.error("Error logging in (SignIn):", error);
