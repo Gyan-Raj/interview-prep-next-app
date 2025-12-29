@@ -21,7 +21,7 @@ export async function POST() {
       }
 
       // 2️⃣ Prevent deleting last ADMIN
-      if (authUser.role === "ADMIN") {
+      if (authUser.activeRole.name === "ADMIN") {
         const adminCount = await tx.userRole.count({
           where: {
             role: { name: "ADMIN" },
