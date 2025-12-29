@@ -4,7 +4,7 @@ import AuthHydrator from "@/app/components/AuthHydrator";
 import { AuthUser, RoleOps } from "@/app/types";
 
 type Props = {
-  allowedRoles: RoleOps;
+  allowedRoles: RoleOps[];
   children: (user: AuthUser) => React.ReactNode;
 };
 
@@ -20,7 +20,7 @@ export default async function ProtectedLayout({
   return (
     <>
       <AuthHydrator user={user} />
-      {children}
+       {children(user)}
     </>
   );
 }

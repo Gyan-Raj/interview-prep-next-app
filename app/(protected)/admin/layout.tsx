@@ -8,7 +8,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedLayout allowedRoles={"ADMIN"}>
+    <ProtectedLayout allowedRoles={["ADMIN"]}>
       {() => <DashboardShell role="Admin">{children}</DashboardShell>}
     </ProtectedLayout>
   );
