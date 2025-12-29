@@ -2,14 +2,14 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
-import { Roles } from "@/app/types";
+import { Role } from "@/app/types";
 import { useEffect, useState } from "react";
 
 type UserRow = {
   id: string;
   name?: string;
   email: string;
-  roles: Roles[];
+  roles: Role[];
 };
 
 export default function AdminManage() {
@@ -17,7 +17,6 @@ export default function AdminManage() {
   const [loading, setLoading] = useState(true);
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((state) => state.auth.user);
-  console.log(users, "users");
 
   useEffect(() => {
     fetch("/api/admin/users")
@@ -38,7 +37,6 @@ export default function AdminManage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, roleId, action }),
     });
-    console.log(roleId, "roleId");
 
     if (!res.ok) return;
 
@@ -85,10 +83,6 @@ export default function AdminManage() {
               <div className="flex gap-2">
                 {user?.roles?.map((role) => {
                   const hasRole = user.roles.find((r) => r.id === role.id);
-                  console.log(user, "user");
-                  console.log(user?.roles, "user?.roles");
-                  console.log(authUser, "authUser");
-                  console.log(role, "role");
 
                   const isSelf = authUser?.id === user.id;
                   const isActiveRole =

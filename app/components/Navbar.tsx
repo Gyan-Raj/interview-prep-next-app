@@ -16,7 +16,6 @@ export default function Navbar() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
-  console.log(user, "user: Navbar");
   const [roleModalOpen, setRoleModalOpen] = useState(false);
 
   const roleRef = useRef<HTMLDivElement | null>(null);
@@ -47,8 +46,6 @@ export default function Navbar() {
     if (!res.ok) return;
 
     const { data }: SwitchRoleResponse = await res.json();
-    console.log(data,"data");
-    
 
     dispatch(setUser(data));
 
@@ -99,9 +96,6 @@ export default function Navbar() {
                   >
                     {user.roles.map((role) => {
                       const isActive = role.name === user.activeRole.name;
-
-                      console.log(role, "role");
-
                       return (
                         <button
                           key={role.id}

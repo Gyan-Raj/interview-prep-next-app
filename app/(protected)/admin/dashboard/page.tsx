@@ -3,11 +3,8 @@ import { notFound } from "next/navigation";
 
 export default async function AdminDashboard() {
   const user = await getAuthUser();
-  console.log(user, ":user AdminDashboard");
 
   if (!user || user.activeRole.name !== "ADMIN") {
-    console.log(user);
-    
     notFound();
   }
 

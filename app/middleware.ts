@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
+import { AuthUser } from "@/app/types";
 
 const secretKey = process.env.SECRET_KEY!;
 
@@ -15,7 +16,6 @@ export function middleware(req: NextRequest) {
 
   // Public routes
   if (req.nextUrl.pathname === "/") {
-    console.log(req.nextUrl.pathname, "req.nextUrl.pathname");
     return NextResponse.next();
   }
 
@@ -24,8 +24,7 @@ export function middleware(req: NextRequest) {
   }
 
   try {
-    const user = jwt.verify(token, secretKey) as { role: string };
-    console.log(user, "user middleware");
+    const user = jwt.verify(token, secretKey) as AuthUser;
 
     const allowedBasePath = ROLE_ROUTE_MAP[user.activeRole.name];
 
