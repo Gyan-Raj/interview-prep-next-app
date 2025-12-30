@@ -1,21 +1,34 @@
-import axios from "axios";
-import { LoginType } from "./types";
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const api = axios.create({
-  // baseURL: "/api",
-  baseURL,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import api from "@/app/api";
+import {
+  ChangePasswordTypes,
+  LoginType,
+  SwitchRoleTypes,
+  UpdateRoles_Admin_Types,
+} from "@/app/types";
 
 export async function login(payload: LoginType) {
-  try {
-    const res = await api.post("/login", payload);
-    return res;
-  } catch (error) {
-    console.error("Error logging in (login): ", error);
-  }
+  return api.post("/login", payload);
+}
+export async function me() {
+  return api.get("/me");
+}
+export async function changePassword(payload: ChangePasswordTypes) {
+  return api.post("/change-password", payload);
+}
+export async function deleteProfile() {
+  return api.post("/delete-profile");
+}
+export async function switchRole(payload: SwitchRoleTypes) {
+  return api.post("/switch-role", payload);
+}
+export async function logout() {
+  return api.post("/logout");
+}
+
+/** Admin routes */
+export async function getUsers_Admin() {
+  return api.get("/admin/users");
+}
+export async function updateRoles_Admin(payload: UpdateRoles_Admin_Types) {
+  return api.post("/admin/roles", payload);
 }

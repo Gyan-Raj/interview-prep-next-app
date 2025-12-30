@@ -6,24 +6,32 @@ import { useAppDispatch } from "./store/hooks";
 import { setUser } from "./store/slices/authSlice";
 import { roleDashboardRoute } from "./utils/utils";
 import { AuthUser } from "./types";
+import { me } from "./actions";
 
 export default function NotFound() {
   const router = useRouter();
   const [dashboard, setDashboard] = useState("/");
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => {
-        return res.json();
-      })
-      .then((data: AuthUser) => {
+  const fetchMe = async () => {
+    try {
+      const res = await me();
+      if (res.status === 200) {
+        const data: AuthUser = res.data;
+
         if (data?.activeRole) {
           dispatch(setUser(data));
           const targetRoute = roleDashboardRoute[data.activeRole.name];
           setDashboard(targetRoute);
         }
-      });
+      }
+    } catch (error) {
+      console.error("Error fetching user details in (api/me)", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMe();
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { getUsers_Admin, updateRoles_Admin } from "@/app/actions";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
 import { Role } from "@/app/types";
@@ -18,13 +19,22 @@ export default function AdminManage() {
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((state) => state.auth.user);
 
-  useEffect(() => {
-    fetch("/api/admin/users")
-      .then((res) => res.json())
-      .then((data) => {
+  const fetchUsers = async () => {
+    try {
+      const res = await getUsers_Admin();
+      if (res.status === 200) {
+        const data = res.data;
         setUsers(data);
-        setLoading(false);
-      });
+      }
+    } catch (error) {
+      console.error("Error fetching admin users (admin/users)", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   async function updateRole(
@@ -32,24 +42,22 @@ export default function AdminManage() {
     roleId: string,
     action: "add" | "remove"
   ) {
-    const res = await fetch("/api/admin/roles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, roleId, action }),
-    });
+    try {
+      const res = await updateRoles_Admin({ userId, roleId, action });
 
-    if (!res.ok) return;
+      if (res.status === 200) {
+        const { updatedUser } = res.data;
 
-    const { updatedUser } = await res.json();
+        setUsers((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+        );
 
-    // 1️⃣ Update admin table
-    setUsers((prev) =>
-      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-    );
-
-    // 2️⃣ If admin modified THEMSELF → update Redux
-    if (authUser?.id === updatedUser.id) {
-      dispatch(setUser(updatedUser));
+        if (authUser?.id === updatedUser.id) {
+          dispatch(setUser(updatedUser));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating user role", error);
     }
   }
 

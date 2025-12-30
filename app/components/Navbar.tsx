@@ -6,7 +6,8 @@ import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { clearUser, setUser } from "@/app/store/slices/authSlice";
 import { formatRole, roleDashboardRoute } from "@/app/utils/utils";
 import { useState, useRef, useEffect } from "react";
-import { AuthUser } from "../types";
+import { AuthUser } from "@/app/types";
+import { logout, switchRole } from "@/app/actions";
 
 type SwitchRoleResponse = {
   data: AuthUser;
@@ -37,28 +38,30 @@ export default function Navbar() {
   }, [roleModalOpen]);
 
   async function handleSwitchRole(roleId: string) {
-    const res = await fetch("/api/switch-role", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roleId }),
-    });
-
-    if (!res.ok) return;
-
-    const { data }: SwitchRoleResponse = await res.json();
-
-    dispatch(setUser(data));
-
-    const targetRoute = roleDashboardRoute[data.activeRole.name];
-
-    router.replace(targetRoute);
+    try {
+      const res = await switchRole({ roleId });
+      if (res.status === 200) {
+        const { data }: SwitchRoleResponse = res;
+        dispatch(setUser(data));
+        const targetRoute = roleDashboardRoute[data.activeRole.name];
+        router.replace(targetRoute);
+      }
+    } catch (error) {
+      console.error("Error switching the role (api/switch-role", error);
+    }
   }
 
   async function handleLogout() {
-    await fetch("/api/logout", { method: "POST" });
-    dispatch(clearUser());
-    router.replace("/");
-    router.refresh();
+    try {
+      const res = await logout();
+      if (res.status === 200) {
+        dispatch(clearUser());
+        router.replace("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error logging out (api/logout)", error);
+    }
   }
 
   return (

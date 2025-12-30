@@ -11,7 +11,8 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   if (!token) return null;
 
   try {
-    return jwt.verify(token, secretKey) as AuthUser;
+    const user = jwt.verify(token, secretKey) as AuthUser;
+    return user;
   } catch {
     return null;
   }

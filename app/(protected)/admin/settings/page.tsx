@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { changePassword, deleteProfile } from "@/app/actions";
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -15,24 +16,23 @@ export default function AdminSettings() {
   const [confirmDelete, setConfirmDelete] = useState("");
 
   async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+    try {
+      e.preventDefault();
+      setLoading(true);
 
-    const res = await fetch("/api/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
+      const res = await changePassword({ currentPassword, newPassword });
+      setLoading(false);
 
-    setLoading(false);
-
-    if (res.ok) {
-      alert("Password changed successfully. Please log in again.");
-      router.replace("/");
-      router.refresh();
-    } else {
-      const data = await res.json();
-      alert(data.message || "Failed to change password");
+      if (res.status === 200) {
+        alert("Password changed successfully. Please log in again.");
+        router.replace("/");
+        router.refresh();
+      } else {
+        const { data } = res;
+        alert(data.message || "Failed to change password");
+      }
+    } catch (error) {
+      console.error("Error changing password (api/change-password)", error);
     }
   }
 
@@ -42,16 +42,18 @@ export default function AdminSettings() {
       return;
     }
 
-    const res = await fetch("/api/delete-profile", {
-      method: "POST",
-    });
+    try {
+      const res = await deleteProfile();
 
-    if (res.ok) {
-      router.replace("/");
-      router.refresh();
-    } else {
-      const data = await res.json();
-      alert(data.message || "Failed to delete profile");
+      if (res.status == 200) {
+        router.replace("/");
+        router.refresh();
+      } else {
+        const { data } = res;
+        alert(data.message || "Failed to delete profile");
+      }
+    } catch (error) {
+      console.error("Error deleting the profile (api/delete-profile)", error);
     }
   }
 
