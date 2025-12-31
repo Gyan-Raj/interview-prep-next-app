@@ -63,6 +63,7 @@ export async function POST(req: Request) {
   const payload = {
     id: updatedUser.id,
     email: updatedUser.email,
+    phone: updatedUser.phone,
     name: updatedUser.name,
     activeRole: updatedUser.activeRole,
     roles: updatedUser.roles.map((ur) => ur.role),

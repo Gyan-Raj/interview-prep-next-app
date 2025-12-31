@@ -1,6 +1,6 @@
 import type { RoleOps } from "@/app/types";
 
-export function formatRole(role: string): string {
+export function toSentenceCase(role: string): string {
   if (!role) return "";
 
   return role

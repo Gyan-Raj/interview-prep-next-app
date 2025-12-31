@@ -64,6 +64,7 @@ export async function POST() {
       {
         id: user.id,
         email: user.email,
+        phone: user.phone,
         name: user.name,
         activeRole: user.activeRole,
         roles: user.roles,

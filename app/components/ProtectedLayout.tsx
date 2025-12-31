@@ -20,7 +20,7 @@ export default async function ProtectedLayout({
   return (
     <>
       <AuthHydrator user={user} />
-       {children(user)}
+      {children(user)}
     </>
   );
 }

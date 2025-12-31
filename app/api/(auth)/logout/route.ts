@@ -47,7 +47,7 @@ export async function POST() {
 
   response.cookies.set("refreshToken", "", {
     httpOnly: true,
-    path: "/api/refresh",
+    path: "/",
     maxAge: 0,
   });
 

@@ -4,7 +4,7 @@ import ThemeToggle from "@/app/components/ThemeToggle";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { clearUser, setUser } from "@/app/store/slices/authSlice";
-import { formatRole, roleDashboardRoute } from "@/app/utils/utils";
+import { toSentenceCase, roleDashboardRoute } from "@/app/utils/utils";
 import { useState, useRef, useEffect } from "react";
 import { AuthUser } from "@/app/types";
 import { logout, switchRole } from "@/app/actions";
@@ -86,7 +86,7 @@ export default function Navbar() {
                     user.roles.length > 1 ? "cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  {user.name} ({formatRole(user.activeRole.name)})
+                  {user.name} ({toSentenceCase(user.activeRole.name)})
                 </button>
 
                 {roleModalOpen && (
@@ -109,7 +109,7 @@ export default function Navbar() {
                           }}
                           className="block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-(--color-border) disabled:opacity-60"
                         >
-                          {formatRole(role.name)}
+                          {toSentenceCase(role.name)}
                         </button>
                       );
                     })}

@@ -64,6 +64,7 @@ export async function POST(req: Request) {
     const payload = {
       id: user.id,
       email: user.email,
+      phone: user.phone,
       name: user.name,
       activeRole: activeRole,
       roles: user.roles.map((ur) => ur.role),
@@ -99,6 +100,7 @@ export async function POST(req: Request) {
           id: user.id,
           name: user.name,
           email: user.email,
+          phone: user.phone,
           activeRole: activeRole,
           roles: user.roles.map((ur) => ur.role),
         },
@@ -118,7 +120,7 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      path: "/api/refresh",
+      path: "/",
       maxAge: 90 * 24 * 60 * 60,
     });
 
