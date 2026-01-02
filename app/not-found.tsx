@@ -23,6 +23,7 @@ export default function NotFound() {
           dispatch(setUser(data));
           const targetRoute = roleDashboardRoute[data.activeRole.name];
           setDashboard(targetRoute);
+          router.replace(targetRoute);
         }
       }
     } catch (error) {

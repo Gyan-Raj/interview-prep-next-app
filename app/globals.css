@@ -10,6 +10,9 @@
 
   --radius-card: 12px;
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --color-button-primary-bg: #e0f2fe;
+  --color-button-primary-text: #075985;
 }
 
 /* Dark theme */
@@ -22,10 +25,26 @@
 
   --radius-card: 12px;
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  --color-button-primary-bg: #0c4a6e;
+  --color-button-primary-text: #e0f2fe;
 }
 
 /* Base element wiring */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+  border-radius: var(--radius-card);
+}
+
+.btn-secondary {
+  background-color: var(--color-panel);
+  color: var(--color-text);
+  border-radius: var(--radius-card);
 }

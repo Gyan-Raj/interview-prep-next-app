@@ -1,5 +1,7 @@
 import { getAuthUser } from "@/app/lib/auth";
 import { notFound } from "next/navigation";
+import { prisma } from "@/app/db/prisma";
+import AdminDashboardClient from "./AdminDashboardClient";
 
 export default async function AdminDashboard() {
   const user = await getAuthUser();
@@ -8,16 +10,47 @@ export default async function AdminDashboard() {
     notFound();
   }
 
-  return (
-    <div>
-      {/* <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+  const roles = await prisma.role.findMany();
 
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        <div className="rounded border p-4">Total Users</div>
-        <div className="rounded border p-4">Active Sessions</div>
-        <div className="rounded border p-4">System Health</div>
-      </div> */}
-      <h1 className="text-2xl font-semibold">Hi, {user?.name}</h1>
-    </div>
+  const roleCounts = await prisma.userRole.groupBy({
+    by: ["roleId"],
+    _count: { roleId: true },
+  });
+
+  const pendingInvites = await prisma.userInvite.findMany({
+    where: {
+      usedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    include: {
+      user: {
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return (
+    <AdminDashboardClient
+      user={user}
+      roles={roles}
+      roleCounts={roleCounts}
+      pendingInvites={pendingInvites.map((i) => ({
+        inviteId: i.id,
+        userId: i.user.id,
+        name: i.user.name ?? undefined,
+        email: i.user.email,
+        phone: i.user.phone ?? undefined,
+        roles: i.user.roles.map((ur) => ({
+          id: ur.role.id,
+          name: ur.role.name,
+        })),
+      }))}
+    />
   );
 }

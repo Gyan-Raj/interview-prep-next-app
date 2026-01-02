@@ -8,7 +8,7 @@ export const SIDEBAR_MENU = {
       href: roleDashboardRoute.ADMIN,
       icon: LayoutDashboard,
     },
-    { label: "Users", href: "/admin/manage", icon: Users },
+    { label: "Users", href: "/admin/users", icon: Users },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
 

@@ -20,7 +20,7 @@ const validationSchema = yup.object({
 export default function SignIn() {
   const router = useRouter();
   const formik = useFormik({
-    initialValues: { email: "", password: "" },
+    initialValues,
     validationSchema,
     onSubmit: async (values) => {
       try {

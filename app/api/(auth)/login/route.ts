@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db/prisma";
+import { createSession } from "@/app/lib/session";
 
 const secretKey = process.env.SECRET_KEY!;
 
@@ -79,18 +80,7 @@ export async function POST(req: Request) {
     });
 
     // 6️⃣ Persist session
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        refreshToken: hashedRefreshToken,
-        userAgent: req.headers.get("user-agent"),
-        ipAddress:
-          req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip"),
-        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      },
-    });
+    await createSession(user.id);
 
     // 7️⃣ Response includes available roles
     const response = NextResponse.json(

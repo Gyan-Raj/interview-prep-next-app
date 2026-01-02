@@ -11,6 +11,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  phone: string;
   activeRole: Role;
   roles: Role[];
 }
@@ -25,6 +26,31 @@ export type SwitchRoleTypes = {
 /** Admin */
 export type UpdateRoles_Admin_Types = {
   userId: string;
-  roleId: string;
-  action: "add" | "remove";
+  roleIds: string[];
+};
+export type SendInvite_Admin_Types = {
+  name: string;
+  email: string;
+  phone: string;
+  roleIds: string[];
+};
+export type UserRow = {
+  id: string;
+  name?: string;
+  email: string;
+  phone?: string;
+  roles: Role[];
+};
+type DisplayRole = {
+  id: string;
+  name: string;
+};
+
+export type PendingInviteRow = {
+  inviteId: string;
+  userId: string;
+  name?: string;
+  email: string;
+  phone?: string;
+  roles: DisplayRole[];
 };

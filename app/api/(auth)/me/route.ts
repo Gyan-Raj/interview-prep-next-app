@@ -4,6 +4,7 @@ import { prisma } from "@/app/db/prisma";
 
 export async function GET() {
   const authUser = await getAuthUser();
+
   if (!authUser) {
     return NextResponse.json(null, { status: 401 });
   }
