@@ -31,7 +31,13 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
-
+    
+    if (!user.password) {
+      return NextResponse.json(
+        { message: "Account not activated. Please accept the invite first." },
+        { status: 403 }
+      );
+    }
     // 2️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
