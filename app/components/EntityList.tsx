@@ -15,7 +15,6 @@ export default function EntityList({
   renderActions: (item: EntityListItem) => React.ReactNode;
   renderMeta?: (item: EntityListItem) => React.ReactNode;
 }) {
-  console.log(items, "items");
 
   return (
     <div

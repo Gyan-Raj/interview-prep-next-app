@@ -13,7 +13,6 @@ export async function POST(req: Request) {
 
   // 2️⃣ Parse body
   const body = await req.json();
-  console.log(body, "body");
 
   const { name, email, phone, roleIds } = body as {
     name?: string;

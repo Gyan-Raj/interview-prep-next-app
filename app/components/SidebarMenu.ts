@@ -1,5 +1,5 @@
 import { LayoutDashboard, Users, Settings } from "lucide-react";
-import { roleDashboardRoute } from "../utils/utils";
+import { roleDashboardRoute } from "@/app/utils/utils";
 
 export const SIDEBAR_MENU = {
   Admin: [

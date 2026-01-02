@@ -53,7 +53,7 @@ export default function AddUserModal({
           onAddUser();
         }
       } catch (error) {
-        console.log("Error sending invite link (admin/user)", error);
+        console.error("Error sending invite link (admin/user)", error);
       }
     },
   });

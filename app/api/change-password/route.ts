@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/app/db/prisma";
 import { createSession } from "@/app/lib/session";
-import { roleDashboardRoute } from "@/app/lib/roles";
 
 export async function POST(req: Request) {
   const body = await req.json();

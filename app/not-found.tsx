@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "./store/hooks";
 import { setUser } from "./store/slices/authSlice";
-import { roleDashboardRoute } from "./utils/utils";
+import { roleDashboardRoute } from "@/app/utils/utils";
 import { AuthUser } from "./types";
 import { me } from "./actions";
 

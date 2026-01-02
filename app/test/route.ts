@@ -3,8 +3,6 @@ import axios from "axios";
 
 export async function GET() {
   try {
-    console.log(process.env.BREVO_API_KEY, "process.env.BREVO_API_KEY");
-
     const res = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
