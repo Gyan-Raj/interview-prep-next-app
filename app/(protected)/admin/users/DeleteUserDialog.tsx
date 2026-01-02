@@ -1,4 +1,4 @@
-import { UserRow } from "./page";
+import { UserRow } from "@/app/types";
 
 export default function DeleteUserDialog({
   user,
