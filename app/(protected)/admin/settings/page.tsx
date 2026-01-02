@@ -9,7 +9,7 @@ export default function AdminSettings() {
 
   // Change password state
   const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Delete profile state
@@ -20,7 +20,7 @@ export default function AdminSettings() {
       e.preventDefault();
       setLoading(true);
 
-      const res = await changePassword({ currentPassword, newPassword });
+      const res = await changePassword({ currentPassword, password });
       setLoading(false);
 
       if (res.status === 200) {
@@ -85,8 +85,8 @@ export default function AdminSettings() {
         <input
           type="password"
           placeholder="New password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded border px-3 py-2"
           style={{ borderColor: "var(--color-border)" }}
           required

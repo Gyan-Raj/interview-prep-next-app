@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { changePassword } from "../actions";
 
 export default function ChangePasswordClient() {
   const searchParams = useSearchParams();
@@ -24,14 +25,10 @@ export default function ChangePasswordClient() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
+      const res = await changePassword({ token, password });
 
-      if (!res.ok) {
-        const data = await res.json();
+      if (res.status !== 200) {
+        const data = await res.data;
         setError(data.message || "Failed to set password");
         return;
       }

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { acceptInvite } from "../actions";
 
 export default function AcceptInviteClient() {
   const router = useRouter();
@@ -17,10 +18,11 @@ export default function AcceptInviteClient() {
       }
 
       try {
-        const res = await fetch(`/api/accept-invite?token=${token}`);
+        // const res = await fetch(`/api/accept-invite?token=${token}`);
+        const res = await acceptInvite(token);
 
         // 2️⃣ Invalid / expired / used → redirect home
-        if (!res.ok) {
+        if (res.status !== 200) {
           router.replace("/");
           return;
         }

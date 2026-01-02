@@ -16,6 +16,12 @@ export async function me() {
 export async function changePassword(payload: ChangePasswordTypes) {
   return api.post("/change-password", payload);
 }
+export async function acceptInvite(token: string) {
+  return api.get("/accept-invite", {
+    params: { token },
+  });
+}
+
 export async function deleteProfile() {
   return api.post("/delete-profile");
 }
