@@ -3,12 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAllRoles_Admin } from "@/app/actions";
 import { toSentenceCase } from "@/app/utils/utils";
-import { UserRow } from "@/app/types";
-
-type RoleOption = {
-  id: string;
-  name: string;
-};
+import { Role, UserRow } from "@/app/types";
 
 export default function EditRolesModal({
   user,
@@ -19,7 +14,7 @@ export default function EditRolesModal({
   onClose: () => void;
   onSave: (id: string, roles: string[]) => void;
 }) {
-  const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>(
     user.roles.map((r) => r.id)
   );
@@ -93,7 +88,7 @@ export default function EditRolesModal({
                       selectedRoles.length === 1 && selectedRoles[0] === role.id
                     }
                     onChange={() => toggleRole(role.id)}
-                    className="accent-[var(--color-accent)]"
+                    className="accent-(--color-accent)"
                   />
                   <span>{toSentenceCase(role.name)}</span>
                 </label>
