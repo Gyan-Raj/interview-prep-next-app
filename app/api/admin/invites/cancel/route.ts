@@ -5,7 +5,7 @@ import { getAuthUser } from "@/app/lib/auth";
 export async function POST(req: Request) {
   // 1️⃣ Auth check
   const authUser = await getAuthUser();
-  if (!authUser || authUser.activeRole.name !== "ADMIN") {
+  if (!authUser || authUser?.activeRole?.name !== "ADMIN") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
