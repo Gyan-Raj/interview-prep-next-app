@@ -6,7 +6,7 @@ import AdminDashboardClient from "./AdminDashboardClient";
 export default async function AdminDashboard() {
   const user = await getAuthUser();
 
-  if (!user || user.activeRole.name !== "ADMIN") {
+  if (!user || user?.activeRole?.name !== "ADMIN") {
     notFound();
   }
 
