@@ -14,7 +14,21 @@ export default async function AdminDashboard() {
 
   const roleCounts = await prisma.userRole.groupBy({
     by: ["roleId"],
-    _count: { roleId: true },
+    where: {
+      user: {
+        invites: {
+          none: {
+            usedAt: null,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        },
+      },
+    },
+    _count: {
+      roleId: true,
+    },
   });
 
   const pendingInvites = await prisma.userInvite.findMany({

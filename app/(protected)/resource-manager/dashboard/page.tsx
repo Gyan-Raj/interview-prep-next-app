@@ -26,6 +26,16 @@ export default async function ResourceManagerDashboard() {
           not: "ADMIN",
         },
       },
+      user: {
+        invites: {
+          none: {
+            usedAt: null,
+            expiresAt: {
+              gt: new Date(),
+            },
+          },
+        },
+      },
     },
     _count: {
       roleId: true,
