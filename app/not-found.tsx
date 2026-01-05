@@ -21,7 +21,7 @@ export default function NotFound() {
 
         if (data?.activeRole) {
           dispatch(setUser(data));
-          const targetRoute = roleDashboardRoute[data.activeRole.name];
+          const targetRoute = roleDashboardRoute[data.activeRole?.name];
           setDashboard(targetRoute);
           router.replace(targetRoute);
         }

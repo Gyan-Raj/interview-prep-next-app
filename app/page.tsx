@@ -19,7 +19,7 @@ export default function Home() {
 
         if (data?.activeRole) {
           dispatch(setUser(data));
-          const targetRoute = roleDashboardRoute[data.activeRole.name];
+          const targetRoute = roleDashboardRoute[data.activeRole?.name];
           router.replace(targetRoute);
         }
       }

@@ -42,8 +42,9 @@ export default function Navbar() {
       const res = await switchRole({ roleId });
       if (res.status === 200) {
         const { data }: SwitchRoleResponse = res;
+        if (!data.activeRole) return;
         dispatch(setUser(data));
-        const targetRoute = roleDashboardRoute[data.activeRole.name];
+        const targetRoute = roleDashboardRoute[data.activeRole?.name];
         router.replace(targetRoute);
       }
     } catch (error) {
@@ -86,7 +87,7 @@ export default function Navbar() {
                     user.roles.length > 1 ? "cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  {user.name} ({toSentenceCase(user.activeRole.name)})
+                  {user.name} ({toSentenceCase(user.activeRole?.name ?? "")})
                 </button>
 
                 {roleModalOpen && (
@@ -98,7 +99,7 @@ export default function Navbar() {
                     }}
                   >
                     {user.roles.map((role) => {
-                      const isActive = role.name === user.activeRole.name;
+                      const isActive = role.name === user.activeRole?.name;
                       return (
                         <button
                           key={role.id}
