@@ -11,7 +11,8 @@ const ROLE_RANK: Record<string, number> = {
 export async function GET(req: Request) {
   // 1️⃣ Auth check
   const authUser = await getAuthUser();
-  if (!authUser || authUser.activeRole?.name !== "ADMIN") {
+
+  if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -28,6 +29,13 @@ export async function GET(req: Request) {
   const where: any = {
     id: {
       not: authUser.id,
+    },
+    roles: {
+      none: {
+        role: {
+          name: "ADMIN",
+        },
+      },
     },
   };
 
@@ -90,9 +98,9 @@ export async function GET(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  // 1️⃣ Auth check (ADMIN only)
+  // 1️⃣ Auth check (RESOURCE MANAGER only)
   const authUser = await getAuthUser();
-  if (!authUser || authUser.activeRole?.name !== "ADMIN") {
+  if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -145,19 +153,21 @@ export async function DELETE(req: Request) {
     );
   }
 
-  // 5️⃣ Prevent deleting last ADMIN
-  const isAdmin = user.roles.some((ur) => ur.role.name === "ADMIN");
+  // 5️⃣ Prevent deleting last RESOURCE MANAGER
+  const isResourceManager = user.roles.some(
+    (ur) => ur.role.name === "RESOURCE MANAGER"
+  );
 
-  if (isAdmin) {
-    const adminCount = await prisma.userRole.count({
+  if (isResourceManager) {
+    const resourceManagerCount = await prisma.userRole.count({
       where: {
-        role: { name: "ADMIN" },
+        role: { name: "RESOURCE MANAGER" },
       },
     });
 
-    if (adminCount <= 1) {
+    if (resourceManagerCount <= 1) {
       return NextResponse.json(
-        { message: "Cannot delete the last admin user" },
+        { message: "Cannot delete the last resource manager user" },
         { status: 400 }
       );
     }
@@ -168,7 +178,7 @@ export async function DELETE(req: Request) {
     where: { id: userId },
   });
 
-  // 7️⃣ Admin-safe response
+  // 7️⃣ Resource Manager-safe response
   return NextResponse.json(
     { message: "User deleted successfully" },
     { status: 200 }

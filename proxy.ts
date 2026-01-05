@@ -1,11 +1,11 @@
 import { NextResponse, NextRequest } from "next/server";
 // import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
-import { AuthUser } from "@/app/types";
+import { AuthUser, RoleOps } from "@/app/types";
 
 const secretKey = process.env.SECRET_KEY!;
 
-const ROLE_ROUTE_MAP: Record<AuthUser["activeRole"]["name"], string> = {
+const ROLE_ROUTE_MAP: Record<RoleOps, string> = {
   ADMIN: "/admin",
   "RESOURCE MANAGER": "/resource-manager",
   RESOURCE: "/resource",
@@ -57,6 +57,7 @@ export default async function proxy(req: NextRequest) {
       // refresh failed → user stays null
     }
   }
+  if (!user || !user.activeRole) return;
 
   // 3️⃣ Landing page
   if (pathname === "/") {

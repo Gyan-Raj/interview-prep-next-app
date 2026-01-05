@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   changePassword,
   deleteProfile,
-  getAllRoles_Admin,
-  updateRoles_Admin,
+  getAllRoles_ResourceManager,
+  updateRoles_ResourceManager,
 } from "@/app/actions";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
@@ -14,7 +14,7 @@ import { Role } from "@/app/types";
 import { toSentenceCase } from "@/app/utils/utils";
 import { SquarePen } from "lucide-react";
 
-export default function AdminSettings() {
+export default function ResourceManagerSettings() {
   const router = useRouter();
 
   // Change password state
@@ -35,7 +35,7 @@ export default function AdminSettings() {
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const res = await getAllRoles_Admin({ purpose: "edit" });
+        const res = await getAllRoles_ResourceManager({purpose:"edit"});
         if (res.status === 200) {
           setAllRoles(res.data);
         }
@@ -106,7 +106,7 @@ export default function AdminSettings() {
 
       if (isSame) return;
       if (isSame) return;
-      const res = await updateRoles_Admin({
+      const res = await updateRoles_ResourceManager({
         userId: authUser.id,
         roleIds: selectedRoleIds,
       });
@@ -120,7 +120,7 @@ export default function AdminSettings() {
       }
       setIsSelfEdit(false);
     } catch (error) {
-      console.error("Error updating user roles(api/admin/roles)", error);
+      console.error("Error updating user roles(api/resource-manager/roles)", error);
     }
   }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
+import { createSession } from "@/app/lib/session";
 
 const secretKey = process.env.SECRET_KEY!;
 
@@ -73,6 +74,12 @@ export async function POST(req: Request) {
     expiresIn: "15m",
   });
 
+  // const refreshToken = jwt.sign(payload, secretKey, {
+  //   expiresIn: "90d",
+  // });
+
+  // await createSession(updatedUser.id);
+
   // 6️⃣ Return updated user for Redux
   const response = NextResponse.json(
     {
@@ -89,6 +96,14 @@ export async function POST(req: Request) {
     path: "/",
     maxAge: 15 * 60,
   });
+
+  // response.cookies.set("refreshToken", refreshToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   sameSite: "strict",
+  //   path: "/",
+  //   maxAge: 90 * 24 * 60 * 60,
+  // });
 
   return response;
 }

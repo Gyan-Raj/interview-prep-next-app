@@ -16,7 +16,10 @@ export default function InviteActionsMenu({
 
   const isAuthorized = useMemo(() => {
     const invitedUserRoleNames = invite.roles.map((r) => r.name);
-    return !invitedUserRoleNames.includes("ADMIN");
+    const isNotAllowed =
+      invitedUserRoleNames.includes("ADMIN") ||
+      invitedUserRoleNames.includes("RESOURCE MANAGER");
+    return !isNotAllowed;
   }, [user, invite.roles]);
 
   // Close on outside click

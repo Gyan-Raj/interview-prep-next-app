@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllRoles_Admin } from "@/app/actions";
+import { getAllRoles_ResourceManager } from "@/app/actions";
 import { toSentenceCase } from "@/app/utils/utils";
 import { Role, UserRow } from "@/app/types";
 
@@ -24,7 +24,7 @@ export default function EditRolesModal({
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const res = await getAllRoles_Admin({ purpose: "edit" });
+        const res = await getAllRoles_ResourceManager({ purpose: "edit" });
         if (res.status === 200) {
           setAllRoles(res.data);
         }
@@ -52,7 +52,7 @@ export default function EditRolesModal({
       style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
     >
       <div
-        className="w-[420px] p-5 space-y-5"
+        className="w-105 p-5 space-y-5"
         style={{
           backgroundColor: "var(--color-panel)",
           border: "1px solid var(--color-border)",

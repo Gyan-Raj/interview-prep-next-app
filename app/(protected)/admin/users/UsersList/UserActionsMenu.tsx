@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { UserRow } from "@/app/types";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function UserActionsMenu({
+  user,
   onEdit,
   onDelete,
 }: {
+  user: UserRow;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const isAuthorized = useMemo(() => {
+    const userRoleNames = user.roles.map((r) => r.name);
+    return !userRoleNames.includes("ADMIN");
+  }, [user, user.roles]);
 
   // Close on outside click
   useEffect(() => {
@@ -70,10 +78,17 @@ export default function UserActionsMenu({
 
           <button
             onClick={() => {
-              setOpen(false);
-              onDelete();
+              if (isAuthorized) {
+                setOpen(false);
+                onDelete();
+              }
             }}
             className="block w-full px-3 py-2 text-left text-sm hover:opacity-80"
+            style={{
+              cursor: isAuthorized ? "pointer" : "not-allowed",
+              color: isAuthorized ? "" : "var(--color-border)",
+            }}
+            disabled={!isAuthorized}
           >
             Delete
           </button>

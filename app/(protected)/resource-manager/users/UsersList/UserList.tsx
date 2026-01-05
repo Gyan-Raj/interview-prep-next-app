@@ -29,9 +29,9 @@ export default function UsersList({
         const user = users.find((u) => u.id === item.id)!;
         return (
           <UserActionsMenu
+            user={user}
             onEdit={() => onEdit(user)}
             onDelete={() => onDelete(user)}
-            user={user}
           />
         );
       }}

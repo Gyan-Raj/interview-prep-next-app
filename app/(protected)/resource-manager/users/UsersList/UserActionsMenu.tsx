@@ -1,23 +1,27 @@
-import { useAppSelector } from "@/app/store/hooks";
-import { PendingInviteRow } from "@/app/types";
-import { copyInviteLink } from "@/app/utils/utils";
+"use client";
+
+import { UserRow } from "@/app/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export default function InviteActionsMenu({
-  invite,
-  onConfirm,
+export default function UserActionsMenu({
+  user,
+  onEdit,
+  onDelete,
 }: {
-  invite: PendingInviteRow;
-  onConfirm: () => void;
+  user: UserRow;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const user = useAppSelector((state) => state.auth);
 
   const isAuthorized = useMemo(() => {
-    const invitedUserRoleNames = invite.roles.map((r) => r.name);
-    return !invitedUserRoleNames.includes("ADMIN");
-  }, [user, invite.roles]);
+    const userRoleNames = user.roles.map((r) => r.name);
+    const isNotAllowed =
+      userRoleNames.includes("ADMIN") ||
+      userRoleNames.includes("RESOURCE MANAGER");
+    return !isNotAllowed;
+  }, [user, user.roles]);
 
   // Close on outside click
   useEffect(() => {
@@ -64,28 +68,32 @@ export default function InviteActionsMenu({
         >
           <button
             onClick={() => {
-              if (isAuthorized) {
-                setOpen(false);
-                onConfirm();
-              }
+              setOpen(false);
+              onEdit();
             }}
             className="block w-full px-3 py-2 text-left text-sm hover:opacity-80"
             style={{
               borderBottom: "1px solid var(--color-border)",
+            }}
+          >
+            Edit roles
+          </button>
+
+          <button
+            onClick={() => {
+              if (isAuthorized) {
+                setOpen(false);
+                onDelete();
+              }
+            }}
+            className="block w-full px-3 py-2 text-left text-sm hover:opacity-80"
+            style={{
               cursor: isAuthorized ? "pointer" : "not-allowed",
               color: isAuthorized ? "" : "var(--color-border)",
             }}
             disabled={!isAuthorized}
           >
-            Cancel Invite
-          </button>
-          <button
-            onClick={() => {
-              copyInviteLink(invite, () => setOpen(false));
-            }}
-            className="block w-full px-3 py-2 text-left text-sm hover:opacity-80 cursor-pointer"
-          >
-            Copy Invite Link
+            Delete
           </button>
         </div>
       )}

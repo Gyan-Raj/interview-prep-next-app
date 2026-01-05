@@ -10,7 +10,9 @@ import { AuthUser } from "@/app/types";
 import { logout, switchRole } from "@/app/actions";
 
 type SwitchRoleResponse = {
-  data: AuthUser;
+  data: {
+    data: AuthUser;
+  };
 };
 
 export default function Navbar() {
@@ -40,11 +42,15 @@ export default function Navbar() {
   async function handleSwitchRole(roleId: string) {
     try {
       const res = await switchRole({ roleId });
+
       if (res.status === 200) {
-        const { data }: SwitchRoleResponse = res;
+        const { data: resData }: SwitchRoleResponse = res;
+        const { data } = resData;
         if (!data.activeRole) return;
+
         dispatch(setUser(data));
         const targetRoute = roleDashboardRoute[data.activeRole?.name];
+
         router.replace(targetRoute);
       }
     } catch (error) {

@@ -29,8 +29,8 @@ export default function PendingInvitesList({
         const invite = invites.find((i) => i.inviteId === item.id)!;
         return (
           <InviteActionsMenu
-            invite={invite}
             onConfirm={() => onConfirm(invite)}
+            invite={invite}
           />
         );
       }}

@@ -10,7 +10,7 @@ type Payload = {
 export async function POST(req: Request) {
   // 1️⃣ Auth check
   const authUser = await getAuthUser();
-  if (!authUser || authUser.activeRole?.name !== "ADMIN") {
+  if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -55,25 +55,25 @@ export async function POST(req: Request) {
   const rolesToAdd = roleIds.filter((id) => !currentRoleIds.includes(id));
   const rolesToRemove = currentRoleIds.filter((id) => !roleIds.includes(id));
 
-  // 4️⃣ Prevent removing last ADMIN
-  const adminRole = await prisma.role.findUnique({
-    where: { name: "ADMIN" },
+  // 4️⃣ Prevent removing last RESOURCE MANAGER
+  const resourceManagerRole = await prisma.role.findUnique({
+    where: { name: "RESOURCE MANAGER" },
   });
 
-  if (adminRole && rolesToRemove.includes(adminRole.id)) {
-    const adminCount = await prisma.userRole.count({
-      where: { roleId: adminRole.id },
+  if (resourceManagerRole && rolesToRemove.includes(resourceManagerRole.id)) {
+    const resourceManagerCount = await prisma.userRole.count({
+      where: { roleId: resourceManagerRole.id },
     });
 
-    if (adminCount <= 1) {
+    if (resourceManagerCount <= 1) {
       return NextResponse.json(
-        { message: "Cannot remove last admin" },
+        { message: "Cannot remove last resource manager" },
         { status: 400 }
       );
     }
   }
 
-  // 5️⃣ Prevent admin removing own active role
+  // 5️⃣ Prevent resource manager removing own active role
   if (
     authUser.id === userId &&
     user.activeRoleId &&
@@ -140,17 +140,21 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const authUser = await getAuthUser();
 
-  if (!authUser || authUser.activeRole?.name !== "ADMIN") {
+  if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
   const roles = await prisma.role.findMany({
     select: { id: true, name: true },
+    where: {
+      name: {
+        not: "ADMIN",
+      },
+    },
   });
-
   const { searchParams } = new URL(req.url);
 
-  const purpose = searchParams.get("purpose")?.trim() || undefined;
   let validRoles = roles;
+  const purpose = searchParams.get("purpose")?.trim() || undefined;
   if (purpose)
     validRoles = roles.filter((r) => r.id !== authUser?.activeRole?.id);
 

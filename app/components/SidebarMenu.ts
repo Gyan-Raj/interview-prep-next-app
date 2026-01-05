@@ -18,6 +18,8 @@ export const SIDEBAR_MENU = {
       href: roleDashboardRoute["RESOURCE MANAGER"],
       icon: LayoutDashboard,
     },
+    { label: "Users", href: "/resource-manager/users", icon: Users },
+    { label: "Settings", href: "/resource-manager/settings", icon: Settings },
   ],
 
   Resource: [

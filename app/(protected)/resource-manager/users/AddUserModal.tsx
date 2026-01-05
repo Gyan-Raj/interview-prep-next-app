@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Modal from "@/app/components/Modal";
-import { sendInvite_Admin, getAllRoles_Admin } from "@/app/actions";
+import { sendInvite_ResourceManager, getAllRoles_ResourceManager } from "@/app/actions";
 import { toSentenceCase } from "@/app/utils/utils";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -48,12 +48,12 @@ export default function AddUserModal({
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const res = await sendInvite_Admin(values);
+        const res = await sendInvite_ResourceManager(values);
         if (res.status === 201) {
           onAddUser();
         }
       } catch (error) {
-        console.error("Error sending invite link (admin/user)", error);
+        console.error("Error sending invite link (resource-manager/user)", error);
       }
     },
   });
@@ -61,7 +61,7 @@ export default function AddUserModal({
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const res = await getAllRoles_Admin({ purpose: "edit" });
+        const res = await getAllRoles_ResourceManager();
         if (res.status === 200) {
           setRoles(res.data);
         }
