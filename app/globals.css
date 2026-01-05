@@ -7,6 +7,7 @@
   --color-border: #e5e7eb;
   --color-text: #0f172a;
   --color-accent: #38bdf8;
+  --color-danger: #ff0000;
 
   --radius-card: 12px;
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -41,10 +42,20 @@ body {
   background-color: var(--color-button-primary-bg);
   color: var(--color-button-primary-text);
   border-radius: var(--radius-card);
+  cursor: pointer;
 }
 
 .btn-secondary {
   background-color: var(--color-panel);
   color: var(--color-text);
   border-radius: var(--radius-card);
+  cursor: pointer;
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-text);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  color: var(--color-bg);
 }

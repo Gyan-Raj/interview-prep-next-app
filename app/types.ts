@@ -9,10 +9,10 @@ export type Role = {
 };
 export interface AuthUser {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
-  phone: string;
-  activeRole: Role;
+  phone: string | null;
+  activeRole: Role | null;
   roles: Role[];
 }
 export type ChangePasswordTypes = {

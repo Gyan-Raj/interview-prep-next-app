@@ -51,9 +51,12 @@ export async function POST(req: Request) {
   }
 
   const currentRoleIds = user.roles.map((ur) => ur.roleId);
+  console.log(currentRoleIds, "currentRoleIds");
 
   const rolesToAdd = roleIds.filter((id) => !currentRoleIds.includes(id));
+  console.log(rolesToAdd, "rolesToAdd");
   const rolesToRemove = currentRoleIds.filter((id) => !roleIds.includes(id));
+  console.log(rolesToRemove, "rolesToRemove");
 
   // 4️⃣ Prevent removing last ADMIN
   const adminRole = await prisma.role.findUnique({
@@ -121,6 +124,7 @@ export async function POST(req: Request) {
       activeRole: true,
     },
   });
+  console.log(updatedUser, "updatedUser");
 
   return NextResponse.json({
     updatedUser: {

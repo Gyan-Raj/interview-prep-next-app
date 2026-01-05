@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
 import { Role } from "@/app/types";
 import { toSentenceCase } from "@/app/utils/utils";
+import { SquarePen } from "lucide-react";
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function AdminSettings() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [allRoles, setAllRoles] = useState<Role[]>([]);
+  const [isSelfEdit, setIsSelfEdit] = useState(false);
 
   const authUser = useAppSelector((state) => state.auth.user);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -49,6 +51,8 @@ export default function AdminSettings() {
 
   useEffect(() => {
     if (authUser?.roles) {
+      console.log(authUser.roles, "authUser.roles");
+
       setSelectedRoleIds(authUser?.roles.map((r) => r.id) ?? []);
     }
   }, [authUser]);
@@ -98,6 +102,12 @@ export default function AdminSettings() {
   async function handleUpdateRole() {
     try {
       if (!authUser) return;
+      const prevRoleIds = authUser.roles.map((r) => r.id);
+      const prevSet = new Set(prevRoleIds);
+      const isSame = selectedRoleIds.every((id) => prevSet.has(id));
+
+      if (isSame) return;
+      if (isSame) return;
       const res = await updateRoles_Admin({
         userId: authUser.id,
         roleIds: selectedRoleIds,
@@ -110,6 +120,7 @@ export default function AdminSettings() {
           dispatch(setUser(updatedUser));
         }
       }
+      setIsSelfEdit(false);
     } catch (error) {
       console.error("Error updating user roles(api/admin/roles)", error);
     }
@@ -122,6 +133,7 @@ export default function AdminSettings() {
         : [...(prev ?? []), roleId]
     );
   }
+  console.log(selectedRoleIds);
 
   return (
     <div className="max-w-xl space-y-8">
@@ -161,8 +173,7 @@ export default function AdminSettings() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded px-4 py-2 text-sm"
-          style={{ backgroundColor: "var(--color-accent)", color: "#fff" }}
+          className="rounded px-4 py-2 text-sm btn-primary"
         >
           {loading ? "Updating..." : "Change Password"}
         </button>
@@ -191,7 +202,7 @@ export default function AdminSettings() {
 
         <button
           onClick={handleDeleteProfile}
-          className="rounded px-4 py-2 text-sm bg-red-600 text-white"
+          className="btn-danger rounded px-4 py-2 text-sm"
         >
           Delete Profile
         </button>
@@ -207,53 +218,62 @@ export default function AdminSettings() {
         }}
       >
         {/* Header */}
-        <h2 className="text-lg font-semibold">Edit Roles</h2>
-
+        <h2 className="text-lg font-semibold">Your Roles</h2>
+        <div className="flex justify-between">
+          <p className="text-sm opacity-80">
+            {authUser?.roles.map((r) => toSentenceCase(r.name)).join(", ")}
+          </p>
+          <SquarePen
+            size={18}
+            color="var(--color-text)"
+            className="cursor-pointer"
+            onClick={() =>
+              isSelfEdit ? setIsSelfEdit(false) : setIsSelfEdit(true)
+            }
+          />
+        </div>
         {/* Roles List */}
-        <div className="space-y-2 text-sm">
-          {loading && <p className="opacity-70">Loading roles…</p>}
+        {isSelfEdit && (
+          <>
+            <div className="space-y-2 text-sm">
+              {loading && <p className="opacity-70">Loading roles…</p>}
 
-          {!loading && allRoles.length === 0 && (
-            <p className="opacity-70">No roles available</p>
-          )}
+              {!loading && allRoles.length === 0 && (
+                <p className="opacity-70">No roles available</p>
+              )}
 
-          {!loading &&
-            allRoles.map((role) => {
-              const checked = selectedRoleIds?.includes(role.id);
+              {!loading &&
+                allRoles.map((role) => {
+                  const checked = selectedRoleIds?.includes(role.id);
 
-              return (
-                <label
-                  key={role.id}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleRole(role.id)}
-                    disabled={role.id === authUser?.activeRole?.id}
-                    className="accent-(--color-accent)"
-                  />
-                  <span>{toSentenceCase(role.name)}</span>
-                </label>
-              );
-            })}
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            onClick={handleUpdateRole}
-            disabled={loading}
-            className="px-4 py-1.5 text-sm font-medium disabled:opacity-60"
-            style={{
-              backgroundColor: "var(--color-accent)",
-              borderRadius: "var(--radius-card)",
-              color: "#000",
-            }}
-          >
-            OK
-          </button>
-        </div>
+                  return (
+                    <label
+                      key={role.id}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleRole(role.id)}
+                        disabled={role.id === authUser?.activeRole?.id}
+                        className="accent-(--color-accent)"
+                      />
+                      <span>{toSentenceCase(role.name)}</span>
+                    </label>
+                  );
+                })}
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={handleUpdateRole}
+                disabled={loading}
+                className="btn-primary px-4 py-1.5 text-sm"
+              >
+                OK
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
