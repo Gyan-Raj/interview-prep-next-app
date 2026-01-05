@@ -9,7 +9,7 @@ export async function POST() {
   }
 
   // 🔐 Prevent deleting last ADMIN
-  if (authUser.activeRole.name === "ADMIN") {
+  if (authUser.activeRole?.name === "ADMIN") {
     const adminCount = await prisma.userRole.count({
       where: { role: { name: "ADMIN" } },
     });
