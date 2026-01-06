@@ -115,13 +115,19 @@ enum ReviewDecision {
 }
 
 model Interview {
-  id            String   @id @default(uuid())
-  companyName   String
-  round         String
-  role          String
-  interviewDate DateTime
+  id String @id @default(uuid())
 
-  status InterviewStatus @default(DRAFT)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  roleId String
+  role   InterviewRole @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  roundId String
+  round   InterviewRound @relation(fields: [roundId], references: [id], onDelete: Restrict)
+
+  interviewDate DateTime
+  status        InterviewStatus @default(DRAFT)
 
   resourceId String
   resource   User   @relation(fields: [resourceId], references: [id], onDelete: Restrict)
@@ -133,10 +139,10 @@ model Interview {
 
   submission Submission?
 
-  @@index([companyName])
-  @@index([role])
+  @@index([companyId])
+  @@index([roleId])
+  @@index([roundId])
   @@index([status])
-  @@index([resourceId])
 }
 
 model Submission {
@@ -199,4 +205,44 @@ model Review {
 
   @@index([submissionVersionId])
   @@index([reviewedById])
+}
+
+model Company {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+
+  @@index([name])
+}
+
+model InterviewRole {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+
+  @@index([name])
+}
+
+model InterviewRound {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  order    Int? // optional: screening=1, hr=99
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+
+  @@index([name])
 }
