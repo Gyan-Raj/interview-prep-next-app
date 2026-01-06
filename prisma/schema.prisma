@@ -12,42 +12,45 @@ datasource db {
 //////////////////////
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String?
-  name      String?
-  phone     String?  @unique
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String?
+  name     String?
+  phone    String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdById   String?
-  createdBy     User?   @relation("UserCreatedBy", fields: [createdById], references: [id])
-  createdUsers  User[]  @relation("UserCreatedBy")
+  createdById  String?
+  createdBy    User?   @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers User[]  @relation("UserCreatedBy")
 
-  roles        UserRole[]
-  sessions     Session[]
+  roles    UserRole[]
+  sessions Session[]
 
   activeRoleId String?
-  activeRole   Role? @relation("ActiveRole", fields: [activeRoleId], references: [id])
+  activeRole   Role?   @relation("ActiveRole", fields: [activeRoleId], references: [id])
 
   passwordExpiresAt  DateTime?
-  passwordMustChange Boolean @default(false)
+  passwordMustChange Boolean   @default(false)
 
-  // 👇 REQUIRED opposite relation
-  invites UserInvite[]
-
-  // who created invites
+  invites        UserInvite[]
   createdInvites UserInvite[] @relation("InviteCreatedBy")
+
+  // ✅ ADD THESE 👇
+
+  interviewsAsResource Interview[]
+  reviewsGiven         Review[]
+
+  @@index([name])
 }
 
-
 model Role {
-  id    String @id @default(uuid())
-  name  String @unique
+  id   String @id @default(uuid())
+  name String @unique
 
-  users        UserRole[]
-  activeUsers  User[] @relation("ActiveRole")
+  users       UserRole[]
+  activeUsers User[]     @relation("ActiveRole")
 }
 
 model UserRole {
@@ -61,16 +64,16 @@ model UserRole {
 }
 
 model Session {
-  id           String   @id @default(uuid())
+  id           String @id @default(uuid())
   userId       String
-  refreshToken String   @db.Text
+  refreshToken String @db.Text
 
-  userAgent    String?
-  ipAddress    String?
+  userAgent String?
+  ipAddress String?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  expiresAt    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -78,19 +81,122 @@ model Session {
 }
 
 model UserInvite {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  token     String   @unique
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  token     String    @unique
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   usedAt    DateTime?
 
   createdById String
-  createdBy   User @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy   User   @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum InterviewStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  DELETED
+}
 
+enum SubmissionVersionStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
 
+enum ReviewDecision {
+  APPROVED
+  REJECTED
+}
 
+model Interview {
+  id            String   @id @default(uuid())
+  companyName   String
+  round         String
+  role          String
+  interviewDate DateTime
+
+  status InterviewStatus @default(DRAFT)
+
+  resourceId String
+  resource   User   @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+
+  createdVia String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submission Submission?
+
+  @@index([companyName])
+  @@index([role])
+  @@index([status])
+  @@index([resourceId])
+}
+
+model Submission {
+  id          String    @id @default(uuid())
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  versions SubmissionVersion[]
+}
+
+model SubmissionVersion {
+  id           String     @id @default(uuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  versionNumber Int
+  status        SubmissionVersionStatus @default(DRAFT)
+
+  createdAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  questions Question[]
+  reviews   Review[]
+
+  @@unique([submissionId, versionNumber])
+  @@index([status])
+  @@index([submissionId])
+}
+
+model Question {
+  id                  String            @id @default(uuid())
+  submissionVersionId String
+  submissionVersion   SubmissionVersion @relation(fields: [submissionVersionId], references: [id], onDelete: Cascade)
+
+  text     String   @db.Text
+  tags     String[]
+  mediaUrl String?
+
+  createdAt DateTime @default(now())
+
+  @@index([submissionVersionId])
+  @@index([createdAt])
+}
+
+model Review {
+  id                  String            @id @default(uuid())
+  submissionVersionId String
+  submissionVersion   SubmissionVersion @relation(fields: [submissionVersionId], references: [id], onDelete: Cascade)
+
+  reviewedById String
+  reviewedBy   User   @relation(fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  decision ReviewDecision
+  reason   String?
+
+  reviewedAt DateTime @default(now())
+
+  @@index([submissionVersionId])
+  @@index([reviewedById])
+}
