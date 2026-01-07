@@ -55,3 +55,52 @@ export type PendingInviteRow = {
   phone?: string;
   roles: DisplayRole[];
 };
+
+type Interview = {
+  id: string;
+  companyName: string;
+  role: string;
+  round: string;
+  interviewDate: string;
+};
+type Resource = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+};
+export type SubmissionRow = {
+  submissionVersionId: string;
+
+  interview: Interview;
+
+  resource: Resource;
+
+  versionNumber: number;
+  submittedAt: string;
+};
+
+export type UpdateSubmissionStatus_ResourceManager_Types = {
+  submissionVersionId: string;
+  action: string;
+};
+export type RequestSubmissionPayload = {
+  company: { id?: string; name?: string };
+  role: { id?: string; name?: string };
+  round: { id?: string; name?: string };
+  resourceId: string;
+  interviewDate: string;
+};
+
+// SearchSelect
+export type Option = {
+  id?: string;
+  name: string;
+};
+export type SearchSelectProps = {
+  label: string;
+  value: Option | null;
+  onChange: (opt: Option) => void;
+  fetchOptions: (query?: string) => Promise<Option[]>;
+  allowCreate?: boolean;
+};

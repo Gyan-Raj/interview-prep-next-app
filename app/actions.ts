@@ -2,9 +2,11 @@ import api from "@/app/api";
 import {
   ChangePasswordTypes,
   LoginType,
+  RequestSubmissionPayload,
   SendInvite_Admin_Types,
   SwitchRoleTypes,
   UpdateRoles_Admin_Types,
+  UpdateSubmissionStatus_ResourceManager_Types,
 } from "@/app/types";
 
 export async function login(payload: LoginType) {
@@ -108,4 +110,56 @@ export async function updateRoles_ResourceManager(
 }
 export async function cancelInvite_ResourceManager(inviteId: string) {
   return api.post("/resource-manager/invites/cancel", { inviteId });
+}
+export async function getAllSubmissionStatus_ResourceManager() {
+  return api.get("/resource-manager/submissions");
+}
+export async function getSubmissions_ResourceManager(params?: {
+  searchText?: string;
+  submissionStatusIds?: string[];
+}) {
+  return api.get("/resource-manager/submissions", {
+    params: {
+      query: params?.searchText,
+      submissionStatusIds: params?.submissionStatusIds?.join(","), // important
+    },
+  });
+}
+export async function updateSubmission_ResourceManager(
+  payload: UpdateSubmissionStatus_ResourceManager_Types
+) {
+  return api.patch("/resource-manager/submissions", payload);
+}
+export async function getCompanies_ResourceManager(params?: {
+  query?: string;
+}) {
+  return api.get("/resource-manager/submissions/companies", {
+    params: { query: params?.query },
+  });
+}
+export async function getResources_ResourceManager(params?: {
+  query?: string;
+}) {
+  return api.get("/resource-manager/submissions/resources", {
+    params: { query: params?.query },
+  });
+}
+export async function getInterviewRoles_ResourceManager(params?: {
+  query?: string;
+}) {
+  return api.get("/resource-manager/submissions/interview-roles", {
+    params: { query: params?.query },
+  });
+}
+export async function getInterviewRounds_ResourceManager(params?: {
+  query?: string;
+}) {
+  return api.get("/resource-manager/submissions/interview-rounds", {
+    params: { query: params?.query },
+  });
+}
+export async function postRequestSubmission_ResourceManager(
+  payload: RequestSubmissionPayload
+) {
+  return api.post("/resource-manager/submissions", payload);
 }
