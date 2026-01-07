@@ -96,6 +96,8 @@ export type RequestSubmissionPayload = {
 export type Option = {
   id?: string;
   name: string;
+  email?: string;
+  phone?: string;
 };
 export type SearchSelectProps = {
   label: string;

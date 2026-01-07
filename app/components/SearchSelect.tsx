@@ -91,7 +91,17 @@ export default function SearchSelect({
                       setQuery("");
                     }}
                   >
-                    {opt.name}
+                    {opt.name}{" "}
+                    <span>
+                      (
+                      <span className="text-sm opacity-70">
+                        {opt.email ?? ""}
+                      </span>
+                      <span className="text-sm opacity-70">
+                        {opt.phone ? ` / ${opt.phone}` : ""}
+                      </span>
+                      )
+                    </span>
                   </div>
                 ))}
 
@@ -101,7 +111,7 @@ export default function SearchSelect({
                     (o) => o.name.toLowerCase() === query.toLowerCase()
                   ) && (
                     <div
-                      className="px-3 py-2 text-sm cursor-pointer text-[var(--color-accent)] hover:opacity-80"
+                      className="px-3 py-2 text-sm cursor-pointer text-(--color-accent) hover:opacity-80"
                       onClick={() => {
                         onChange({ name: query });
                         setOpen(false);
