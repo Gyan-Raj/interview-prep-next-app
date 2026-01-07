@@ -1,5 +1,5 @@
 import { SubmissionVersionStatus } from "@prisma/client";
-
+import { SubmissionStatusKey } from "../types";
 
 export const SUBMISSION_STATUS_CONFIG = [
   {
@@ -19,3 +19,10 @@ export const SUBMISSION_STATUS_CONFIG = [
     label: "Rejected",
   },
 ] as const;
+
+export const statusColorMap: Record<SubmissionStatusKey, string> = {
+  DRAFT: "text-muted-foreground",
+  PENDING_REVIEW: "text-blue-600",
+  APPROVED: "text-green-600",
+  REJECTED: "text-red-600",
+};

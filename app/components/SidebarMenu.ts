@@ -39,5 +39,11 @@ export const SIDEBAR_MENU = {
       href: roleDashboardRoute.RESOURCE,
       icon: LayoutDashboard,
     },
+    {
+      label: "My Submissions",
+      href: "/resource/submissions",
+      icon: ClipboardPen,
+    },
+    { label: "Settings", href: "/resource/settings", icon: Settings },
   ],
 };

@@ -6,6 +6,7 @@ import {
   SendInvite_Admin_Types,
   SwitchRoleTypes,
   UpdateRoles_Admin_Types,
+  UpdateSubmissionDetail_Resource_Types,
   UpdateSubmissionStatus_ResourceManager_Types,
 } from "@/app/types";
 
@@ -159,4 +160,29 @@ export async function postRequestSubmission_ResourceManager(
   payload: RequestSubmissionPayload
 ) {
   return api.post("/resource-manager/submissions", payload);
+}
+
+/** Resource */
+export async function getMySubmissions_Resource(params?: {
+  searchText?: string;
+  submissionStatusIds?: string[];
+  submissionId?: string;
+}) {
+  return api.get(
+    params && params.submissionId
+      ? `/resource/submissions/:${params.submissionId}`
+      : `/resource/submissions`,
+    {
+      params: {
+        query: params?.searchText,
+        submissionStatusIds: params?.submissionStatusIds?.join(","), // important
+      },
+    }
+  );
+}
+
+export async function updateSubmissionDetail_Resource(
+  payload: UpdateSubmissionDetail_Resource_Types
+) {
+  return api.patch("/resource/submissions", payload);
 }

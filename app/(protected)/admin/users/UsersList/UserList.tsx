@@ -12,6 +12,9 @@ export default function UsersList({
   onEdit: (u: UserRow) => void;
   onDelete: (u: UserRow) => void;
 }) {
+  if (users.length === 0) {
+    return <div className="p-6 text-sm opacity-70">No users found.</div>;
+  }
   return (
     <EntityList
       items={users.map((u) => ({

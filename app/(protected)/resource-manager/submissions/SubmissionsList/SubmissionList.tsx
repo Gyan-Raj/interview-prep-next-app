@@ -9,6 +9,9 @@ export default function SubmissionList({
   submissions: SubmissionRow[];
   onEdit: (submission: SubmissionRow, action: "approve" | "reject") => void;
 }) {
+  if (submissions.length === 0) {
+    return <div className="p-6 text-sm opacity-70">No submissions found.</div>;
+  }
   return (
     <SubmissionsEntryList
       items={submissions.map((s) => ({

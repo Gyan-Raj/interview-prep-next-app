@@ -73,11 +73,8 @@ type Resource = {
 };
 export type SubmissionRow = {
   submissionVersionId: string;
-
   interview: Interview;
-
   resource: Resource;
-
   versionNumber: number;
   submittedAt: string;
 };
@@ -111,3 +108,26 @@ export type SearchSelectProps = {
 
 export type SubmissionStatusKey =
   (typeof SUBMISSION_STATUS_CONFIG)[number]["key"];
+
+export type ResourceSubmissionRow = {
+  submissionId: string;
+  submissionVersionId: string;
+  versionNumber: number;
+
+  status: SubmissionStatusKey;
+  submittedAt: string | null;
+
+  companyName: string;
+  role: string;
+  round: string;
+  interviewDate: string;
+};
+
+export type UpdateSubmissionDetail_Resource_Types = {
+  submissionId: string;
+  action: "save" | "submit";
+  questions: {
+    text: string;
+    media?: string;
+  }[];
+};
