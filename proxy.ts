@@ -1,87 +1,68 @@
-import { NextResponse, NextRequest } from "next/server";
-// import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { AuthUser, RoleOps } from "@/app/types";
 
 const secretKey = process.env.SECRET_KEY!;
 
-const ROLE_ROUTE_MAP: Record<RoleOps, string> = {
+const ROLE_ROUTE_MAP = {
   ADMIN: "/admin",
   "RESOURCE MANAGER": "/resource-manager",
   RESOURCE: "/resource",
+} as const;
+
+type RoleOps = keyof typeof ROLE_ROUTE_MAP;
+
+type JwtPayload = {
+  id: string;
 };
 
-function isTokenExpired(token: string): boolean {
-  try {
-    jwt.verify(token, secretKey);
-    return false;
-  } catch {
-    return true;
-  }
-}
-
-export default async function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const accessToken = req.cookies.get("accessToken")?.value;
 
-  let user: AuthUser | null = null;
+  const token = req.cookies.get("accessToken")?.value;
+  if (!token) return redirectToLogin(req);
 
-  // 1️⃣ Try access token first
-  if (accessToken && !isTokenExpired(accessToken)) {
-    try {
-      user = jwt.verify(accessToken, secretKey) as AuthUser;
-    } catch {
-      user = null;
-    }
-  } else {
-    // 2️⃣ Missing OR expired access token → try refresh
-    try {
-      const refreshResponse = await fetch(new URL("/api/refresh", req.url), {
-        method: "POST",
-        headers: {
-          cookie: req.headers.get("cookie") || "",
-        },
-      });
-
-      if (refreshResponse.ok) {
-        const response = NextResponse.next();
-
-        const setCookie = refreshResponse.headers.get("set-cookie");
-        if (setCookie) {
-          response.headers.set("set-cookie", setCookie);
-        }
-
-        return response;
-      }
-    } catch {
-      // refresh failed → user stays null
-    }
+  let payload: JwtPayload;
+  try {
+    payload = jwt.verify(token, secretKey) as JwtPayload;
+  } catch {
+    return redirectToLogin(req);
   }
-  if (!user || !user.activeRole) return;
 
-  // 3️⃣ Landing page
+  /**
+   * Fetch live auth context from DB
+   * (DO NOT trust JWT for roles)
+   */
+  const authContextRes = await fetch(new URL("/api/context", req.url), {
+    headers: { cookie: req.headers.get("cookie") || "" },
+  });
+
+  if (!authContextRes.ok) {
+    return redirectToLogin(req);
+  }
+
+  const { activeRole } = await authContextRes.json();
+
+  if (!activeRole) {
+    return redirectToLogin(req);
+  }
+
+  const allowedBasePath = ROLE_ROUTE_MAP[activeRole.name as RoleOps];
+
+  // Landing page
   if (pathname === "/") {
-    if (user) {
-      return NextResponse.redirect(
-        new URL(ROLE_ROUTE_MAP[user.activeRole.name], req.url)
-      );
-    }
-    return NextResponse.next();
+    return NextResponse.redirect(new URL(allowedBasePath, req.url));
   }
 
-  // 4️⃣ Protected routes
-  if (!user) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  // 5️⃣ Role guard
-  const allowedBasePath = ROLE_ROUTE_MAP[user.activeRole.name];
-
+  // Role guard
   if (!pathname.startsWith(allowedBasePath)) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
   return NextResponse.next();
+}
+
+function redirectToLogin(req: NextRequest) {
+  return NextResponse.redirect(new URL("/", req.url));
 }
 
 export const config = {

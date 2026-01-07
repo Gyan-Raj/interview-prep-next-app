@@ -25,37 +25,37 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
   if (!token) return null;
 
+  let payload: { id: string };
   try {
-    const payload = jwt.verify(token, secretKey) as JwtPayload;
-
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-      include: {
-        roles: { include: { role: true } },
-        activeRole: true,
-      },
-    });
-
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      activeRole: user.activeRole
-        ? {
-            id: user.activeRole.id,
-            name: toRoleOps(user.activeRole.name),
-          }
-        : null,
-
-      roles: user.roles.map((ur) => ({
-        id: ur.role.id,
-        name: toRoleOps(ur.role.name),
-      })),
-    };
+    payload = jwt.verify(token, secretKey) as { id: string };
   } catch {
     return null;
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.id },
+    include: {
+      roles: { include: { role: true } },
+      activeRole: true,
+    },
+  });
+
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    phone: user.phone,
+    activeRole: user.activeRole
+      ? {
+          id: user.activeRole.id,
+          name: user.activeRole.name as RoleOps,
+        }
+      : null,
+    roles: user.roles.map((ur) => ({
+      id: ur.role.id,
+      name: ur.role.name as RoleOps,
+    })),
+  };
 }
