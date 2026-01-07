@@ -111,9 +111,6 @@ export async function updateRoles_ResourceManager(
 export async function cancelInvite_ResourceManager(inviteId: string) {
   return api.post("/resource-manager/invites/cancel", { inviteId });
 }
-export async function getAllSubmissionStatus_ResourceManager() {
-  return api.get("/resource-manager/submissions");
-}
 export async function getSubmissions_ResourceManager(params?: {
   searchText?: string;
   submissionStatusIds?: string[];

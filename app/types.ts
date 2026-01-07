@@ -1,3 +1,5 @@
+import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
+
 export interface LoginType {
   email: string;
   password: string;
@@ -106,3 +108,6 @@ export type SearchSelectProps = {
   fetchOptions: (query?: string) => Promise<Option[]>;
   allowCreate?: boolean;
 };
+
+export type SubmissionStatusKey =
+  (typeof SUBMISSION_STATUS_CONFIG)[number]["key"];

@@ -1,11 +1,10 @@
 "use client";
 
 import {
-  getAllSubmissionStatus_ResourceManager,
   getSubmissions_ResourceManager,
   updateSubmission_ResourceManager,
 } from "@/app/actions";
-import { SubmissionRow } from "@/app/types";
+import { SubmissionRow, SubmissionStatusKey } from "@/app/types";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import { toSentenceCase } from "@/app/utils/utils";
@@ -13,21 +12,15 @@ import SubmissionList from "@/app/(protected)/resource-manager/submissions/Submi
 import { Filter } from "lucide-react";
 import RequestSubmissionModal from "@/app/(protected)/resource-manager/submissions/RequestSubmissionModal";
 import ConfirmSubmissionDialog from "@/app/(protected)/resource-manager/submissions/ConfirmSubmissionDialog";
+import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
 
-type SubmissionStatusOption = {
-  id: string;
-  name: string;
-};
 type EditActionTypes = "approve" | "reject";
 
 export default function ResourceManagerSubmissions() {
   const [submissions, setSubmissions] = useState<SubmissionRow[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [listLoading, setListLoading] = useState(false);
 
   const [query, setQuery] = useState("");
-  const [selectedSubmissionStatusIds, setSelectedSubmissionStatusIds] =
-    useState<string[]>([]);
   const [submissionStatusesOpen, setSubmissionStatusesOpen] = useState(false);
 
   const [selectedSubmissionVersion, setSelectedSubmissionVersion] =
@@ -37,26 +30,21 @@ export default function ResourceManagerSubmissions() {
   const [showAddSubmission, setShowAddSubmission] = useState(false);
   const [editAction, setEditAction] = useState<EditActionTypes>("approve");
 
-  const [allSubmissionStatus, setAllSubmissionStatus] = useState<
-    SubmissionStatusOption[]
-  >([]);
+  const allSubmissionStatus = SUBMISSION_STATUS_CONFIG;
+  const [selectedSubmissionStatus, setSelectedSubmissionStatus] = useState<
+    SubmissionStatusKey[]
+  >(SUBMISSION_STATUS_CONFIG.map((s) => s.key));
 
   const debouncedQuery = useDebounce(query, 400);
 
-  async function fetchPendingSubmissions(isInitial = false) {
-    if (isInitial) {
-      setInitialLoading(true);
-    } else {
-      setListLoading(true);
-    }
-
+  async function fetchPendingSubmissions() {
     try {
       const res = await getSubmissions_ResourceManager({
         searchText: debouncedQuery,
         submissionStatusIds:
-          selectedSubmissionStatusIds.length === allSubmissionStatus.length
+          selectedSubmissionStatus.length === allSubmissionStatus.length
             ? undefined
-            : selectedSubmissionStatusIds,
+            : selectedSubmissionStatus,
       });
 
       if (res.status === 200) {
@@ -65,28 +53,21 @@ export default function ResourceManagerSubmissions() {
     } catch (e) {
       console.error("Error fetching submissions", e);
     } finally {
-      if (isInitial) {
-        setInitialLoading(false);
-      } else {
-        setListLoading(false);
-      }
+      setListLoading(false);
     }
   }
 
-  const debouncedSubmissionStatusIds = useDebounce(
-    selectedSubmissionStatusIds,
-    400
-  );
+  const debouncedSubmissionStatusIds = useDebounce(selectedSubmissionStatus, 400);
 
   useEffect(() => {
     if (allSubmissionStatus.length > 0) {
-      fetchPendingSubmissions(true); // 👈 initial page load
+      fetchPendingSubmissions(); // 👈 initial page load
     }
   }, [allSubmissionStatus]);
 
   useEffect(() => {
     if (allSubmissionStatus.length > 0) {
-      fetchPendingSubmissions(false); // 👈 list refresh only
+      fetchPendingSubmissions(); // 👈 list refresh only
     }
   }, [debouncedQuery, debouncedSubmissionStatusIds]);
 
@@ -117,22 +98,9 @@ export default function ResourceManagerSubmissions() {
     }
   }
 
-  useEffect(() => {
-    async function fetchSubmissionStatus() {
-      const res = await getAllSubmissionStatus_ResourceManager();
-      if (res.status === 200) {
-        setAllSubmissionStatus(res.data);
-        setSelectedSubmissionStatusIds(
-          res.data.map((r: SubmissionStatusOption) => r.id)
-        ); // all selected
-      }
-    }
-    fetchSubmissionStatus();
-  }, []);
-
   const isAllSelected =
     allSubmissionStatus.length > 0 &&
-    selectedSubmissionStatusIds.length === allSubmissionStatus.length;
+    selectedSubmissionStatus.length === allSubmissionStatus.length;
 
   const filterLabel = isAllSelected ? (
     <div className="flex items-center gap-0.5">
@@ -145,8 +113,8 @@ export default function ResourceManagerSubmissions() {
       {" "}
       <Filter size={14} style={{ color: "var(--color-text)", opacity: 0.7 }} />
       <span>
-        {selectedSubmissionStatusIds
-          .map((id) => allSubmissionStatus.find((r) => r.id === id)?.name)
+        {selectedSubmissionStatus
+          .map((id) => allSubmissionStatus.find((r) => r.key === id)?.label)
           .filter(Boolean)
           .map((el) => toSentenceCase(el ?? ""))
           .join(", ")}
@@ -157,11 +125,11 @@ export default function ResourceManagerSubmissions() {
   function toggleAll() {
     if (isAllSelected) return; // disabled when checked
 
-    setSelectedSubmissionStatusIds(allSubmissionStatus.map((r) => r.id));
+    setSelectedSubmissionStatus(allSubmissionStatus.map((r) => r.key));
   }
 
-  function toggleStatus(statusId: string) {
-    setSelectedSubmissionStatusIds((prev) =>
+  function toggleStatus(statusId: SubmissionStatusKey) {
+    setSelectedSubmissionStatus((prev) =>
       prev.includes(statusId)
         ? prev.filter((id) => id !== statusId)
         : [...prev, statusId]
@@ -246,20 +214,20 @@ export default function ResourceManagerSubmissions() {
                 {/* Submissions Statuses */}
                 {allSubmissionStatus.map((status) => (
                   <label
-                    key={status.id}
+                    key={status.key}
                     className="flex items-center gap-2 text-sm"
                     style={{ opacity: isAllSelected ? 0.5 : 1 }}
                   >
                     <input
                       type="checkbox"
-                      checked={selectedSubmissionStatusIds.includes(status.id)}
+                      checked={selectedSubmissionStatus.includes(status.key)}
                       disabled={
-                        selectedSubmissionStatusIds.length === 1 &&
-                        selectedSubmissionStatusIds[0] === status.id
+                        selectedSubmissionStatus.length === 1 &&
+                        selectedSubmissionStatus[0] === status.key
                       }
-                      onChange={() => toggleStatus(status.id)}
+                      onChange={() => toggleStatus(status.key)}
                     />
-                    {toSentenceCase(status.name)}
+                    {toSentenceCase(status.label)}
                   </label>
                 ))}
               </div>
@@ -302,7 +270,7 @@ export default function ResourceManagerSubmissions() {
           onClose={() => setShowAddSubmission(false)}
           onAddSubmissionRequest={() => {
             setShowAddSubmission(false);
-            fetchPendingSubmissions(false);
+            fetchPendingSubmissions();
           }}
         />
       )}
