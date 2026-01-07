@@ -32,7 +32,7 @@ export async function createSession(userId: string) {
   (
     await // Set cookie with RAW token
     cookies()
-  ).set("refresh_token", rawRefreshToken, {
+  ).set("refreshToken", rawRefreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

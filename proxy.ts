@@ -18,12 +18,33 @@ type JwtPayload = {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = req.cookies.get("accessToken")?.value;
-  if (!token) return redirectToLogin(req);
+  const accessToken = req.cookies.get("accessToken")?.value;
+
+  if (!accessToken) {
+    const refreshRes = await fetch(new URL("/api/refresh", req.url), {
+      method: "POST",
+      headers: {
+        cookie: req.headers.get("cookie") || "",
+      },
+    });
+
+    if (!refreshRes.ok) {
+      return redirectToLogin(req);
+    }
+
+    const response = NextResponse.next();
+
+    const setCookie = refreshRes.headers.get("set-cookie");
+    if (setCookie) {
+      response.headers.set("set-cookie", setCookie);
+    }
+
+    return response;
+  }
 
   let payload: JwtPayload;
   try {
-    payload = jwt.verify(token, secretKey) as JwtPayload;
+    payload = jwt.verify(accessToken, secretKey) as JwtPayload;
   } catch {
     return redirectToLogin(req);
   }
