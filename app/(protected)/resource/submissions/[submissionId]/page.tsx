@@ -141,27 +141,37 @@ export default function ResourceSubmissionDetailPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* ================= HEADER ================= */}
+
       <div
-        className="border-b px-6 py-3 flex items-center justify-between text-sm"
         style={{
           backgroundColor: "var(--color-panel)",
-          borderColor: "var(--color-border)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--shadow-card)",
         }}
       >
-        <div className="font-medium">
-          {[
-            submission.interview.companyName,
-            submission.interview.role,
-            submission.interview.round,
-          ].join(" · ")}
-          <span className="opacity-70">
-            {" "}
-            – {formatDisplayDate(submission.interview.interviewDate)}
-          </span>
-        </div>
+        <div className="relative flex items-start justify-between px-4 py-2 cursor-pointer hover:bg-muted">
+          <div
+            className={`absolute top-0 right-0 ${
+              statusBadgeClassMap[submission.status]
+            }`}
+          >
+            {toSentenceCase(submission.status)}
+          </div>
 
-        <div className={statusBadgeClassMap[submission.status]}>
-          {toSentenceCase(submission.status)}
+          <div className="space-y-1 pr-24">
+            <p className="font-medium">
+              {[
+                submission.interview.companyName,
+                submission.interview.role,
+                submission.interview.round,
+              ].join(" · ")}
+              <span className="opacity-70 text-sm">
+                {" "}
+                · {formatDisplayDate(submission.interview.interviewDate)}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
 
