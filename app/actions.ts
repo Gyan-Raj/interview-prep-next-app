@@ -135,10 +135,10 @@ export async function updateSubmission_ResourceManager(
   return api.patch("/resource-manager/submissions", payload);
 }
 export async function deleteSubmission_ResourceManager(params: {
-  submissionVersionId: string;
+  submissionId: string;
 }) {
   return api.delete(
-    `/resource-manager/submissions/${params.submissionVersionId}`
+    `/resource-manager/submissions/${params.submissionId}`
   );
 }
 export async function getCompanies_ResourceManager(params?: {

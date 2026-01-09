@@ -88,7 +88,7 @@ export default function ResourceManagerSubmissions() {
       let res;
       if (editAction === "delete") {
         res = await deleteSubmission_ResourceManager({
-          submissionVersionId: selectedSubmissionVersion.submissionVersionId,
+          submissionId: selectedSubmissionVersion.submissionVersionId,
         });
       } else {
         res = await updateSubmission_ResourceManager({

@@ -7,7 +7,6 @@ export async function GET(
   context: { params: Promise<{ submissionId: string }> }
 ) {
   const authUser = await getAuthUser();
-  console.log("Hi");
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -51,7 +50,6 @@ export async function GET(
       { status: 404 }
     );
   }
-  console.log(latestVersion, "latestVersion");
 
   return NextResponse.json(
     {
@@ -86,7 +84,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ submissionVersionId: string }> }
+  context: { params: Promise<{ submissionId: string }> }
 ) {
   const authUser = await getAuthUser();
 
@@ -95,12 +93,12 @@ export async function DELETE(
   }
 
   // ✅ FIX: await params
-  const { submissionVersionId } = await context.params;
+  const { submissionId } = await context.params;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       const version = await tx.submissionVersion.findUnique({
-        where: { id: submissionVersionId },
+        where: { id: submissionId },
         include: {
           submission: {
             include: {
@@ -145,11 +143,11 @@ export async function DELETE(
         where: { id: version.submission.interviewId },
       });
 
-      return { submissionVersionId };
+      return { submissionId };
     });
 
     return NextResponse.json(
-      { deletedSubmissionVersionId: result.submissionVersionId },
+      { deletedSubmissionVersionId: result.submissionId },
       { status: 200 }
     );
   } catch (error: any) {
