@@ -32,15 +32,27 @@ export async function GET(req: Request) {
 
   const where: any = {
     interview: {
-      resourceId: authUser.id, // ✅ ownership
+      resourceId: authUser.id,
     },
   };
 
   if (searchText) {
     where.OR = [
-      { company: { name: { contains: searchText, mode: "insensitive" } } },
-      { role: { name: { contains: searchText, mode: "insensitive" } } },
-      { round: { name: { contains: searchText, mode: "insensitive" } } },
+      {
+        interview: {
+          company: { name: { contains: searchText, mode: "insensitive" } },
+        },
+      },
+      {
+        interview: {
+          role: { name: { contains: searchText, mode: "insensitive" } },
+        },
+      },
+      {
+        interview: {
+          round: { name: { contains: searchText, mode: "insensitive" } },
+        },
+      },
     ];
   }
 
@@ -55,9 +67,8 @@ export async function GET(req: Request) {
         },
       },
       versions: {
-        where: statuses ? { status: { in: statuses } } : undefined,
         orderBy: { versionNumber: "desc" },
-        take: 1, // ✅ ONLY LATEST VERSION
+        take: 1, // ALWAYS latest
       },
     },
     orderBy: { createdAt: "desc" },
@@ -65,6 +76,7 @@ export async function GET(req: Request) {
 
   const response = submissions
     .filter((s) => s.versions.length === 1)
+    .filter((s) => (statuses ? statuses.includes(s.versions[0].status) : true))
     .map((s) => {
       const latest = s.versions[0];
 
@@ -74,7 +86,6 @@ export async function GET(req: Request) {
         versionNumber: latest.versionNumber,
         submittedAt: latest.submittedAt,
         status: latest.status,
-
         interview: {
           id: s.interview.id,
           companyName: s.interview.company.name,
