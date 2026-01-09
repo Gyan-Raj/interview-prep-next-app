@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 
 import {
   getMySubmissions_Resource,
+  getSubmissions_ResourceManager,
   updateSubmissionDetail_Resource,
 } from "@/app/actions";
 
@@ -60,7 +61,6 @@ function documentToQuestions(text: string) {
 
 export default function ResourceSubmissionDetailPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
-
   const [loading, setLoading] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
 
@@ -77,7 +77,7 @@ export default function ResourceSubmissionDetailPage() {
 
     setLoading(true);
     try {
-      const res = await getMySubmissions_Resource({ submissionId });
+      const res = await getSubmissions_ResourceManager({ submissionId });
 
       if (res.status === 200) {
         const data = res.data;

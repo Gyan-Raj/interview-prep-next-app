@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
   // 2️⃣ Parse query params
   const { searchParams } = new URL(req.url);
-  const query = searchParams.get("query")?.trim() || undefined;
+  const query = searchParams.get("searchText")?.trim() || undefined;
 
   // 3️⃣ Fetch companies (bounded + active only)
   const companies = await prisma.company.findMany({

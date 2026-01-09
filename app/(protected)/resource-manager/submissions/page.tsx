@@ -48,7 +48,7 @@ export default function ResourceManagerSubmissions() {
 
     try {
       const res = await getSubmissions_ResourceManager({
-        query: debouncedQuery,
+        searchText: debouncedQuery,
         submissionStatuses:
           selectedSubmissionStatus.length === allSubmissionStatus.length
             ? undefined
@@ -65,7 +65,7 @@ export default function ResourceManagerSubmissions() {
     }
   }
 
-  const debouncedSubmissionStatusIds = useDebounce(
+  const debouncedSubmissionStatuses = useDebounce(
     selectedSubmissionStatus,
     400
   );
@@ -80,7 +80,7 @@ export default function ResourceManagerSubmissions() {
     if (allSubmissionStatus.length > 0) {
       fetchPendingSubmissions(); // 👈 list refresh only
     }
-  }, [debouncedQuery, debouncedSubmissionStatusIds]);
+  }, [debouncedQuery, debouncedSubmissionStatuses]);
 
   async function updateSubmissionStatus() {
     try {
@@ -286,6 +286,11 @@ export default function ResourceManagerSubmissions() {
                 />
               );
             }}
+            onItemClick={(submission) =>
+              router.push(
+                `/resource-manager/submissions/${submission.submissionId}`
+              )
+            }
           />
         )}
       </div>

@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
 
-  const searchText = searchParams.get("query")?.trim();
+  const searchText = searchParams.get("searchText")?.trim();
   const roleIds = searchParams.get("roleIds")?.split(",").filter(Boolean);
   const companyIds = searchParams.get("companyIds")?.split(",").filter(Boolean);
   const roundIds = searchParams.get("roundIds")?.split(",").filter(Boolean);

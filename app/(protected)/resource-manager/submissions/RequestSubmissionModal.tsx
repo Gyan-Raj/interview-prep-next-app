@@ -115,7 +115,7 @@ export default function RequestSubmissionModal({
           value={formik.values.company}
           onChange={(opt) => formik.setFieldValue("company", opt)}
           fetchOptions={(q) =>
-            getCompanies_ResourceManager({ query: q }).then((r) => r.data)
+            getCompanies_ResourceManager({ searchText: q }).then((r) => r.data)
           }
           allowCreate
         />
@@ -126,7 +126,7 @@ export default function RequestSubmissionModal({
           value={formik.values.resource}
           onChange={(opt) => formik.setFieldValue("resource", opt)}
           fetchOptions={(q) =>
-            getResources_ResourceManager({ query: q }).then((r) => r.data)
+            getResources_ResourceManager({ searchText: q }).then((r) => r.data)
           }
           allowCreate={false}
         />
@@ -137,7 +137,7 @@ export default function RequestSubmissionModal({
           value={formik.values.role}
           onChange={(opt) => formik.setFieldValue("role", opt)}
           fetchOptions={(q) =>
-            getInterviewRoles_ResourceManager({ query: q }).then((r) => r.data)
+            getInterviewRoles_ResourceManager({ searchText: q }).then((r) => r.data)
           }
           allowCreate
         />
@@ -148,7 +148,7 @@ export default function RequestSubmissionModal({
           value={formik.values.round}
           onChange={(opt) => formik.setFieldValue("round", opt)}
           fetchOptions={(q) =>
-            getInterviewRounds_ResourceManager({ query: q }).then((r) => r.data)
+            getInterviewRounds_ResourceManager({ searchText: q }).then((r) => r.data)
           }
           allowCreate
         />

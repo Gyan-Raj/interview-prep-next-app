@@ -107,7 +107,7 @@ export type SearchSelectProps = {
   label: string;
   value: Option | null;
   onChange: (opt: Option) => void;
-  fetchOptions: (query?: string) => Promise<Option[]>;
+  fetchOptions: (searchText?: string) => Promise<Option[]>;
   allowCreate?: boolean;
 };
 

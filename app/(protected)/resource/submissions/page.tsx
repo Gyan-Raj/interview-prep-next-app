@@ -36,7 +36,7 @@ export default function ResourceSubmissions() {
     try {
       const res = await getMySubmissions_Resource({
         searchText: debouncedQuery,
-        submissionStatusIds:
+        submissionStatuses:
           selectedSubmissionStatus.length === allSubmissionStatus.length
             ? undefined
             : selectedSubmissionStatus,
@@ -52,7 +52,7 @@ export default function ResourceSubmissions() {
     }
   }
 
-  const debouncedSubmissionStatusIds = useDebounce(
+  const debouncedSubmissionStatuses = useDebounce(
     selectedSubmissionStatus,
     400
   );
@@ -67,7 +67,7 @@ export default function ResourceSubmissions() {
     if (allSubmissionStatus.length > 0) {
       fetchAllMySubmissions(); // 👈 list refresh only
     }
-  }, [debouncedQuery, debouncedSubmissionStatusIds]);
+  }, [debouncedQuery, debouncedSubmissionStatuses]);
 
   const isAllSelected =
     allSubmissionStatus.length > 0 &&

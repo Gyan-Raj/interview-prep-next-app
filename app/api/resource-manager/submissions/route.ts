@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
   // 2️⃣ Query params
   const { searchParams } = new URL(req.url);
-  const searchText = searchParams.get("query")?.trim();
+  const searchText = searchParams.get("searchText")?.trim();
   const statusParam = searchParams.get("submissionStatuses");
 
   const statuses: SubmissionVersionStatus[] | undefined = statusParam

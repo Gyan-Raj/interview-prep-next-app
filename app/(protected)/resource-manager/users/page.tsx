@@ -54,7 +54,7 @@ export default function ResourceManagerUsers() {
 
     try {
       const res = await getUsers_ResourceManager({
-        query: debouncedQuery,
+        searchText: debouncedQuery,
         roleIds:
           selectedRoleIds.length === allRoles.length
             ? undefined

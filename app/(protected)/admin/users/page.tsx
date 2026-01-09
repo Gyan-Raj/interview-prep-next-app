@@ -54,7 +54,7 @@ export default function AdminUsers() {
 
     try {
       const res = await getUsers_Admin({
-        query: debouncedQuery,
+        searchText: debouncedQuery,
         roleIds:
           selectedRoleIds.length === allRoles.length
             ? undefined
