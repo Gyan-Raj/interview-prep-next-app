@@ -57,8 +57,6 @@ function Questions() {
     allRounds?.length > 0 && selectedRounds.length === allRounds.length;
 
   /* ---------------- Fetch master data ---------------- */
-  console.log(allRounds, "allRounds");
-  console.log(selectedRounds, "selectedRounds");
 
   useEffect(() => {
     fetchRoles();
@@ -69,8 +67,6 @@ function Questions() {
   async function fetchRoles() {
     const res = await getAllRoles();
     if (res.status === 200) {
-      console.log(res.data, "res.data:roles");
-
       const roles: Option[] = res.data;
       setAllRoles(roles);
       setSelectedRoles(roles?.map((r) => r.id));
@@ -80,8 +76,6 @@ function Questions() {
   async function fetchCompanies() {
     const res = await getAllCompanies();
     if (res.status === 200) {
-      console.log(res.data, "res.data: companies");
-
       const companies: Option[] = res.data;
       setAllCompanies(companies);
       setSelectedCompanies(companies?.map((c) => c.id));
@@ -91,8 +85,6 @@ function Questions() {
   async function fetchRounds() {
     const res = await getAllRounds();
     if (res.status === 200) {
-      console.log(res.data, "res.data: rounds");
-
       const rounds: Option[] = res.data;
       setAllRounds(rounds);
       setSelectedRounds(rounds?.map((c) => c.id));
@@ -114,8 +106,6 @@ function Questions() {
   async function fetchQuestions() {
     setLoading(true);
     try {
-      console.log("Hi");
-
       const res = await getAllQuestions({
         searchText: debouncedQuery,
         roleIds: debouncedRoles,
@@ -124,7 +114,6 @@ function Questions() {
         approvedOnly: true,
         sort: "desc",
       });
-      console.log(res.data, "res.data");
 
       if (res.status === 200) {
         setQuestions(

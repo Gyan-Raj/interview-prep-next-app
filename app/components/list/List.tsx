@@ -21,9 +21,7 @@ export default function List<T extends ListCardItem>({
   getActions?: (item: T) => React.ReactNode;
 
   onItemClick?: (item: T) => void;
-  }) {
-  console.log(items,"items:List");
-  
+}) {
   return (
     <div className="space-y-3">
       {items.map((item) => (

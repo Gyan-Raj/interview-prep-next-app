@@ -24,12 +24,9 @@ export default function SubmissionsList({
   onItemClick?: (submission: SubmissionRow) => void;
   emptyMessage?: string;
 }) {
-  console.log(submissions, "submissions");
-
   if (submissions.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
   }
-  console.log(submissions, "submissions");
 
   return (
     <List

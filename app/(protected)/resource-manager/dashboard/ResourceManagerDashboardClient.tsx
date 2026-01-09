@@ -121,8 +121,6 @@ export default function ResourceManagerDashboardClient({
                   { key: "rejected", label: "Reject" },
                 ]}
                 onAction={(action) => {
-                  console.log(action, "action");
-
                   setSelectedSubmission(submission);
                   setSubmissionAction(action as EditActionTypes);
                   setShowSubmissionConfirmationDialog(true);
