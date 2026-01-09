@@ -280,7 +280,7 @@ export default function ResourceManagerSubmissions() {
                   actions={actions}
                   onAction={(action) => {
                     setSelectedSubmissionVersion(submission);
-                    setEditAction(action);
+                    setEditAction(action as EditActionTypes);
                     setShowConfirmDialog(true);
                   }}
                 />
