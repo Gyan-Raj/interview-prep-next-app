@@ -14,6 +14,19 @@
 
   --color-button-primary-bg: #e0f2fe;
   --color-button-primary-text: #075985;
+
+  /* status of submissions */
+  --status-draft-bg: #f1f5f9;
+  --status-draft-text: #334155;
+
+  --status-pending-bg: #e0f2fe;
+  --status-pending-text: #075985;
+
+  --status-approved-bg: #dcfce7;
+  --status-approved-text: #166534;
+
+  --status-rejected-bg: #fee2e2;
+  --status-rejected-text: #991b1b;
 }
 
 /* Dark theme */
@@ -29,6 +42,19 @@
 
   --color-button-primary-bg: #0c4a6e;
   --color-button-primary-text: #e0f2fe;
+
+  /* status of submissions */
+  --status-draft-bg: #1e293b;
+  --status-draft-text: #cbd5f5;
+
+  --status-pending-bg: #0c4a6e;
+  --status-pending-text: #bae6fd;
+
+  --status-approved-bg: #14532d;
+  --status-approved-text: #bbf7d0;
+
+  --status-rejected-bg: #7f1d1d;
+  --status-rejected-text: #fecaca;
 }
 
 /* Base element wiring */
@@ -43,6 +69,8 @@ body {
   color: var(--color-button-primary-text);
   border-radius: var(--radius-card);
   cursor: pointer;
+  /* border: 1px solid var(--color-panel); */
+  border: 0.5px solid var(--color-text);
 }
 
 .btn-secondary {
@@ -50,6 +78,7 @@ body {
   color: var(--color-text);
   border-radius: var(--radius-card);
   cursor: pointer;
+  border: 0.5px solid var(--color-text);
 }
 
 .btn-danger {
@@ -58,4 +87,37 @@ body {
   border-radius: var(--radius-card);
   cursor: pointer;
   color: var(--color-bg);
+}
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* Submission status badges */
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.status-draft {
+  background-color: var(--status-draft-bg);
+  color: var(--status-draft-text);
+}
+
+.status-pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+}
+
+.status-approved {
+  background-color: var(--status-approved-bg);
+  color: var(--status-approved-text);
+}
+
+.status-rejected {
+  background-color: var(--status-rejected-bg);
+  color: var(--status-rejected-text);
 }

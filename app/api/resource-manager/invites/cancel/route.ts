@@ -10,18 +10,18 @@ export async function POST(req: Request) {
   }
 
   // 2️⃣ Parse body
-  const { inviteId } = (await req.json()) as { inviteId?: string };
+  const { id } = (await req.json()) as { id?: string };
 
-  if (!inviteId) {
+  if (!id) {
     return NextResponse.json(
-      { message: "inviteId is required" },
+      { message: "Invite id is required" },
       { status: 400 }
     );
   }
 
   // 3️⃣ Fetch invite WITH user roles
   const invite = await prisma.userInvite.findUnique({
-    where: { id: inviteId },
+    where: { id: id },
     include: {
       user: {
         include: {
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   // 5️⃣ Atomic cleanup
   await prisma.$transaction([
     prisma.userInvite.delete({
-      where: { id: inviteId },
+      where: { id: id },
     }),
     prisma.user.delete({
       where: { id: invite.userId },

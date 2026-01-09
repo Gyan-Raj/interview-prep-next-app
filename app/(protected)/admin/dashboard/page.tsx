@@ -55,7 +55,7 @@ export default async function AdminDashboard() {
       roles={roles}
       roleCounts={roleCounts}
       pendingInvites={pendingInvites.map((i) => ({
-        inviteId: i.id,
+        id: i.id,
         userId: i.user.id,
         name: i.user.name ?? undefined,
         email: i.user.email,

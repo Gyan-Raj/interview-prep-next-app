@@ -2,8 +2,8 @@
 
 import { ResourceSubmissionRow } from "@/app/types";
 import { useRouter } from "next/navigation";
-import { toSentenceCase } from "@/app/utils/utils";
-import { statusColorMap } from "@/app/constants/constants";
+import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
+import { statusBadgeClassMap } from "@/app/constants/constants";
 
 export default function ResourceSubmissionsList({
   submissions,
@@ -36,8 +36,8 @@ export default function ResourceSubmissionsList({
         >
           {/* Status — fixed top-right */}
           <div
-            className={`absolute top-4 right-4 text-xs font-medium ${
-              statusColorMap[submission.status]
+            className={`absolute top-4 right-4 ${
+              statusBadgeClassMap[submission.status]
             }`}
           >
             {toSentenceCase(submission.status)}
@@ -46,14 +46,18 @@ export default function ResourceSubmissionsList({
           {/* Content */}
           <div className="pr-24 space-y-1">
             <p className="font-medium">
-              {[submission.companyName, submission.role, submission.round]
+              {[
+                submission.interview.companyName,
+                submission.interview.role,
+                submission.interview.round,
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
 
             <p className="text-sm opacity-70">
-              Interviewd on{" "}
-              {new Date(submission.interviewDate).toLocaleDateString()}
+              Interviewed on{" "}
+              {formatDisplayDate(submission.interview.interviewDate)}
             </p>
           </div>
         </div>

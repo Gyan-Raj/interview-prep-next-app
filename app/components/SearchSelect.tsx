@@ -93,14 +93,27 @@ export default function SearchSelect({
                   >
                     {opt.name}{" "}
                     <span>
-                      (
-                      <span className="text-sm opacity-70">
-                        {opt.email ?? ""}
-                      </span>
-                      <span className="text-sm opacity-70">
-                        {opt.phone ? ` / ${opt.phone}` : ""}
-                      </span>
-                      )
+                      {opt.email && opt.phone ? (
+                        <span className="text-sm opacity-70">
+                          {opt.email} / {opt.phone}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                      {opt.email && !opt.phone ? (
+                        <span className="text-sm opacity-70">
+                          {opt.email ?? ""}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                      {!opt.email && opt.phone ? (
+                        <span className="text-sm opacity-70">
+                          {opt.phone ?? ""}
+                        </span>
+                      ) : (
+                        ""
+                      )}
                     </span>
                   </div>
                 ))}

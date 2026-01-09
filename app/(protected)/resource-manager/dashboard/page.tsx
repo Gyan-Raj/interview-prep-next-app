@@ -60,13 +60,83 @@ export default async function ResourceManagerDashboard() {
     },
   });
 
+  const pendingSubmissionsCount = await prisma.submissionVersion.count({
+    where: {
+      status: "PENDING_REVIEW",
+    },
+  });
+
+  const pendingSubmissions = await prisma.submissionVersion.findMany({
+    where: {
+      status: "PENDING_REVIEW", // keep or adjust if needed
+    },
+    select: {
+      id: true,
+      submissionId: true,
+      versionNumber: true,
+      status: true,
+      submittedAt: true,
+      submission: {
+        select: {
+          interview: {
+            select: {
+              id: true,
+              interviewDate: true,
+              company: {
+                select: { name: true },
+              },
+              role: {
+                select: { name: true },
+              },
+              round: {
+                select: { name: true },
+              },
+              resource: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      submittedAt: "desc",
+    },
+  });
+
   return (
     <ResourceManagerDashboardClient
       user={user}
       roles={roles}
       roleCounts={roleCounts}
+      pendingSubmissionsCount={pendingSubmissionsCount}
+      pendingSubmissions={pendingSubmissions.map((sv) => ({
+        submissionId: sv.submissionId,
+        submissionVersionId: sv.id,
+        versionNumber: sv.versionNumber,
+        status: sv.status,
+        submittedAt: sv.submittedAt ? sv.submittedAt.toISOString() : null,
+        interview: {
+          id: sv.submission.interview.id,
+          companyName: sv.submission.interview.company.name,
+          role: sv.submission.interview.role.name,
+          round: sv.submission.interview.round.name,
+          interviewDate: sv.submission.interview.interviewDate.toISOString(),
+        },
+        resource: {
+          id: sv.submission.interview.resource.id,
+          name: sv.submission.interview.resource.name ?? "—",
+          email: sv.submission.interview.resource.email,
+          phone: sv.submission.interview.resource.phone ?? undefined,
+        },
+      }))}
       pendingInvites={pendingInvites.map((i) => ({
-        inviteId: i.id,
+        id: i.id,
         userId: i.user.id,
         name: i.user.name ?? undefined,
         email: i.user.email,

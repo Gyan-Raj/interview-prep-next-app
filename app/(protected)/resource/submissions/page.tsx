@@ -1,17 +1,25 @@
 "use client";
 
 import { getMySubmissions_Resource } from "@/app/actions";
-import { ResourceSubmissionRow, SubmissionStatusKey } from "@/app/types";
+import {
+  ConfirmAction,
+  ResourceSubmissionRow,
+  SubmissionStatusKey,
+} from "@/app/types";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import { toSentenceCase } from "@/app/utils/utils";
 import { Filter } from "lucide-react";
 import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
 import ResourceSubmissionsList from "./SubmissionsList/ResourceSubmissionsList";
+import SubmissionsList from "@/app/components/submissions/SubmissionsList";
+import SubmissionActionsMenu from "@/app/components/submissions/SubmissionActionsMenu";
+import { useRouter } from "next/navigation";
 
 export default function ResourceSubmissions() {
   const [submissions, setSubmissions] = useState<ResourceSubmissionRow[]>([]);
   const [listLoading, setListLoading] = useState(false);
+  const router=useRouter()
 
   const [query, setQuery] = useState("");
   const [submissionStatusesOpen, setSubmissionStatusesOpen] = useState(false);
@@ -201,7 +209,51 @@ export default function ResourceSubmissions() {
 
       {/* Submissions List */}
       <div style={{ position: "relative" }}>
-        {!listLoading && <ResourceSubmissionsList submissions={submissions} />}
+        {!listLoading && (
+          <SubmissionsList
+            submissions={submissions}
+            renderActions={(submission) => {
+              const actions: { key: ConfirmAction; label: string }[] = [];
+
+              // Resource can edit draft or rejected
+              if (
+                submission.status === "DRAFT" ||
+                submission.status === "REJECTED"
+              ) {
+                actions.push({ key: "edit", label: "Edit" });
+              }
+
+              // Resource can submit draft
+              if (submission.status === "DRAFT" && !submission.submittedAt) {
+                actions.push({ key: "submit", label: "Submit" });
+              }
+
+              if (actions.length === 0) return null;
+
+              return (
+                <SubmissionActionsMenu
+                  actions={actions}
+                  onAction={(action) => {
+                    if (action === "edit") {
+                      router.push(
+                        `/resource/submissions/${submission.submissionId}`
+                      );
+                    }
+
+                    if (action === "submit") {
+                      router.push(
+                        `/resource/submissions/${submission.submissionId}`
+                      );
+                    }
+                  }}
+                />
+              );
+            }}
+            onItemClick={(submission) =>
+              router.push(`/resource/submissions/${submission.submissionId}`)
+            }
+          />
+        )}
       </div>
     </div>
   );

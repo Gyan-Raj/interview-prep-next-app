@@ -20,9 +20,9 @@ export const SUBMISSION_STATUS_CONFIG = [
   },
 ] as const;
 
-export const statusColorMap: Record<SubmissionStatusKey, string> = {
-  DRAFT: "text-muted-foreground",
-  PENDING_REVIEW: "text-blue-600",
-  APPROVED: "text-green-600",
-  REJECTED: "text-red-600",
+export const statusBadgeClassMap: Record<SubmissionStatusKey, string> = {
+  DRAFT: "status-badge status-draft",
+  PENDING_REVIEW: "status-badge status-pending",
+  APPROVED: "status-badge status-approved",
+  REJECTED: "status-badge status-rejected",
 };

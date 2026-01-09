@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import PendingInvitesList from "./PendingInvitesList/PendingInvitesList";
 import CancelInviteDialog from "./CancelInviteDialog";
 import { PendingInviteRow } from "@/app/types";
-import { toSentenceCase } from "@/app/utils/utils";
+import { canAdminCancelInvite, toSentenceCase } from "@/app/utils/utils";
 import { cancelInvite_Admin } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import UserInvitesList from "@/app/components/user-invites/UserInvitesList";
+import UserInviteActionsMenu from "@/app/components/user-invites/UserInviteActionsMenu";
 
 export default function AdminDashboardClient({
   user,
@@ -32,7 +33,7 @@ export default function AdminDashboardClient({
   async function handleCancelInvite() {
     if (!selectedInvite) return;
     try {
-      const res = await cancelInvite_Admin(selectedInvite.inviteId);
+      const res = await cancelInvite_Admin(selectedInvite.id);
 
       if (res.status === 200) {
         setSelectedInvite(null);
@@ -67,12 +68,18 @@ export default function AdminDashboardClient({
       {pendingInvites.length > 0 && (
         <div>
           <h2 className="text-lg font-medium mb-4">Pending invites</h2>
-          <PendingInvitesList
+          <UserInvitesList
             invites={pendingInvites}
-            onConfirm={(invite) => {
-              setSelectedInvite(invite);
-              setShowCancel(true);
-            }}
+            renderActions={(invite) => (
+              <UserInviteActionsMenu
+                invite={invite}
+                canCancel={canAdminCancelInvite(invite)}
+                onCancel={() => {
+                  setSelectedInvite(invite);
+                  setShowCancel(true);
+                }}
+              />
+            )}
           />
         </div>
       )}

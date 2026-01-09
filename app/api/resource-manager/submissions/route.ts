@@ -1,100 +1,86 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
+import { SubmissionVersionStatus } from "@prisma/client";
 
 /**
  * GET /resource-manager/submissions
  * List submission versions for RM review
  */
 export async function GET(req: Request) {
-  // 1️⃣ Auth check
+  // 1️⃣ Auth
   const authUser = await getAuthUser();
-
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  // 2️⃣ Parse query params
+  // 2️⃣ Query params
   const { searchParams } = new URL(req.url);
+  const searchText = searchParams.get("query")?.trim();
+  const statusParam = searchParams.get("submissionStatuses");
 
-  const searchText = searchParams.get("searchText")?.trim() || undefined;
-  const statusParam = searchParams.get("submissionStatusIds");
-
-  const statuses = statusParam
-    ? statusParam.split(",").filter(Boolean)
+  const statuses: SubmissionVersionStatus[] | undefined = statusParam
+    ? statusParam
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s): s is SubmissionVersionStatus =>
+          Object.values(SubmissionVersionStatus).includes(
+            s as SubmissionVersionStatus
+          )
+        )
     : undefined;
 
   /**
-   * 3️⃣ Build where clause
-   * We query SubmissionVersion directly (correct abstraction)
+   * 3️⃣ STEP 1:
+   * Find the latest versionNumber per submissionId
    */
-  const where: any = {
-    ...(statuses && {
-      status: {
-        in: statuses,
-      },
-    }),
-  };
-
-  // 🔍 Search across interview + resource
-  if (searchText) {
-    where.OR = [
-      {
-        submission: {
-          interview: {
-            company: {
-              name: { contains: searchText, mode: "insensitive" },
-            },
-          },
-        },
-      },
-      {
-        submission: {
-          interview: {
-            role: {
-              name: { contains: searchText, mode: "insensitive" },
-            },
-          },
-        },
-      },
-      {
-        submission: {
-          interview: {
-            round: {
-              name: { contains: searchText, mode: "insensitive" },
-            },
-          },
-        },
-      },
-      {
-        submission: {
-          interview: {
-            resource: {
-              name: { contains: searchText, mode: "insensitive" },
-            },
-          },
-        },
-      },
-      {
-        submission: {
-          interview: {
-            resource: {
-              email: { contains: searchText, mode: "insensitive" },
-            },
-          },
-        },
-      },
-    ];
-  }
+  const latestPerSubmission = await prisma.submissionVersion.groupBy({
+    by: ["submissionId"],
+    _max: {
+      versionNumber: true,
+    },
+  });
 
   /**
-   * 4️⃣ Fetch submission versions
-   * Important:
-   * - We return ALL versions (latest is what RM acts on)
-   * - Sorting ensures newest first
+   * 4️⃣ STEP 2:
+   * Fetch ONLY those latest versions
+   * (filtering happens AFTER latest is resolved)
    */
-  const submissionVersions = await prisma.submissionVersion.findMany({
-    where,
+  const latestVersions = await prisma.submissionVersion.findMany({
+    where: {
+      OR: latestPerSubmission.map((l) => ({
+        submissionId: l.submissionId,
+        versionNumber: l._max.versionNumber!,
+      })),
+      ...(statuses && { status: { in: statuses } }),
+      ...(searchText && {
+        submission: {
+          interview: {
+            OR: [
+              {
+                company: {
+                  name: { contains: searchText, mode: "insensitive" },
+                },
+              },
+              { role: { name: { contains: searchText, mode: "insensitive" } } },
+              {
+                round: { name: { contains: searchText, mode: "insensitive" } },
+              },
+              {
+                resource: {
+                  name: { contains: searchText, mode: "insensitive" },
+                },
+              },
+              {
+                resource: {
+                  email: { contains: searchText, mode: "insensitive" },
+                },
+              },
+            ],
+          },
+        },
+      }),
+    },
     include: {
       submission: {
         include: {
@@ -109,31 +95,30 @@ export async function GET(req: Request) {
         },
       },
     },
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: { createdAt: "desc" },
   });
 
-  /**
-   * 5️⃣ Shape response
-   * MUST MATCH PATCH RESPONSE SHAPE
-   */
-  const response = submissionVersions.map((sv) => ({
-    submissionVersionId: sv.id,
-    versionNumber: sv.versionNumber,
-    submittedAt: sv.submittedAt,
+  // 5️⃣ Shape response
+  const response = latestVersions.map((v) => ({
+    submissionId: v.submissionId,
+    submissionVersionId: v.id,
+    versionNumber: v.versionNumber,
+    status: v.status,
+    submittedAt: v.submittedAt,
 
     interview: {
-      id: sv.submission.interview.id,
-      companyName: sv.submission.interview.company.name,
-      role: sv.submission.interview.role.name,
-      round: sv.submission.interview.round.name,
-      interviewDate: sv.submission.interview.interviewDate.toISOString(),
+      id: v.submission.interview.id,
+      companyName: v.submission.interview.company.name,
+      role: v.submission.interview.role.name,
+      round: v.submission.interview.round.name,
+      interviewDate: v.submission.interview.interviewDate.toISOString(),
     },
 
     resource: {
-      id: sv.submission.interview.resource.id,
-      name: sv.submission.interview.resource.name,
-      email: sv.submission.interview.resource.email,
-      phone: sv.submission.interview.resource.phone,
+      id: v.submission.interview.resource.id,
+      name: v.submission.interview.resource.name,
+      email: v.submission.interview.resource.email,
+      phone: v.submission.interview.resource.phone,
     },
   }));
 
@@ -245,8 +230,17 @@ export async function POST(req: Request) {
           interviewId: interview.id,
         },
       });
+      // 🔹 Create initial Submission Version (REQUIRED)
+      const submissionVersion = await tx.submissionVersion.create({
+        data: {
+          submissionId: submission.id,
+          versionNumber: 1,
+          status: "DRAFT",
+          submittedAt: null,
+        },
+      });
 
-      return { interview, submission };
+      return { interview, submission, submissionVersion };
     });
 
     // 4️⃣ Response
@@ -282,14 +276,22 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const { submissionVersionId, action } = (await req.json()) as {
+  const { submissionVersionId, action, reason } = (await req.json()) as {
     submissionVersionId: string;
     action: "APPROVED" | "REJECTED";
+    reason?: string;
   };
 
   if (!submissionVersionId || !action) {
     return NextResponse.json(
       { message: "submissionVersionId and action are required" },
+      { status: 400 }
+    );
+  }
+
+  if (action === "REJECTED" && !reason?.trim()) {
+    return NextResponse.json(
+      { message: "Rejection reason is required" },
       { status: 400 }
     );
   }
@@ -304,7 +306,7 @@ export async function PATCH(req: Request) {
               company: true,
               role: true,
               round: true,
-              resource: true, // ✅ FIXED
+              resource: true,
             },
           },
         },
@@ -326,31 +328,41 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const updated = await prisma.submissionVersion.update({
-    where: { id: submissionVersionId },
-    data: {
-      status: action,
-      submittedAt: action === "APPROVED" ? new Date() : null,
-    },
-    include: {
-      submission: {
-        include: {
-          interview: {
-            include: {
-              company: true,
-              role: true,
-              round: true,
-              resource: true, // ✅ FIXED
+  const [updated] = await prisma.$transaction([
+    prisma.submissionVersion.update({
+      where: { id: submissionVersionId },
+      data: {
+        status: action,
+      },
+      include: {
+        submission: {
+          include: {
+            interview: {
+              include: {
+                company: true,
+                role: true,
+                round: true,
+                resource: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.review.create({
+      data: {
+        submissionVersionId,
+        reviewedById: authUser.id,
+        decision: action,
+        reason: action === "REJECTED" ? reason : null,
+      },
+    }),
+  ]);
 
   const response = {
     submissionVersionId: updated.id,
     versionNumber: updated.versionNumber,
+    status: updated.status,
     submittedAt: updated.submittedAt,
 
     interview: {

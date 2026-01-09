@@ -2,12 +2,15 @@ import {
   LayoutDashboard,
   Users,
   Settings,
-  Users2,
   ClipboardPen,
+  BadgeQuestionMark,
+  Building2,
+  FileBraces,
 } from "lucide-react";
 import { roleDashboardRoute } from "@/app/utils/utils";
+import { SidebarMenuConfig } from "@/app/types";
 
-export const SIDEBAR_MENU = {
+export const SIDEBAR_MENU: SidebarMenuConfig = {
   Admin: [
     {
       label: "Dashboard",
@@ -43,6 +46,27 @@ export const SIDEBAR_MENU = {
       label: "My Submissions",
       href: "/resource/submissions",
       icon: ClipboardPen,
+    },
+    // {
+    //   label: "Questions",
+    //   icon: BadgeQuestionMark,
+    //   children: [
+    //     {
+    //       label: "By companies",
+    //       href: "/resource/questions/companies",
+    //       icon: Building2,
+    //     },
+    //     {
+    //       label: "By roles",
+    //       href: "/resource/questions/roles",
+    //       icon: FileBraces,
+    //     },
+    //   ],
+    // },
+    {
+      label: "Questions",
+      href: "/resource/questions",
+      icon: BadgeQuestionMark,
     },
     { label: "Settings", href: "/resource/settings", icon: Settings },
   ],

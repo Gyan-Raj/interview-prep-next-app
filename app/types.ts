@@ -1,4 +1,5 @@
 import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
+import { LucideIcon } from "lucide-react";
 
 export interface LoginType {
   email: string;
@@ -50,7 +51,7 @@ type DisplayRole = {
 };
 
 export type PendingInviteRow = {
-  inviteId: string;
+  id: string;
   userId: string;
   name?: string;
   email: string;
@@ -71,17 +72,21 @@ type Resource = {
   email: string;
   phone?: string;
 };
+
 export type SubmissionRow = {
-  submissionVersionId: string;
   interview: Interview;
-  resource: Resource;
+  resource?: Resource;
+  status: SubmissionStatusKey;
+  submissionId: string;
+  submissionVersionId: string;
+  submittedAt: string | null;
   versionNumber: number;
-  submittedAt: string;
 };
 
 export type UpdateSubmissionStatus_ResourceManager_Types = {
   submissionVersionId: string;
   action: string;
+  reason?: string;
 };
 export type RequestSubmissionPayload = {
   company: { id?: string; name?: string };
@@ -111,16 +116,11 @@ export type SubmissionStatusKey =
 
 export type ResourceSubmissionRow = {
   submissionId: string;
+  interview: Interview;
   submissionVersionId: string;
-  versionNumber: number;
-
-  status: SubmissionStatusKey;
   submittedAt: string | null;
-
-  companyName: string;
-  role: string;
-  round: string;
-  interviewDate: string;
+  versionNumber: number;
+  status: SubmissionStatusKey;
 };
 
 export type UpdateSubmissionDetail_Resource_Types = {
@@ -128,6 +128,63 @@ export type UpdateSubmissionDetail_Resource_Types = {
   action: "save" | "submit";
   questions: {
     text: string;
-    media?: string;
+    mediaUrl?: string;
   }[];
 };
+
+type SidebarLeaf = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  children?: never;
+};
+
+type SidebarParent = {
+  label: string;
+  icon: LucideIcon;
+  children: SidebarLeaf[];
+  href?: never;
+};
+
+export type SidebarMenuItem = SidebarLeaf | SidebarParent;
+
+export type SidebarMenuConfig = {
+  Admin: SidebarMenuItem[];
+  "Resource Manager": SidebarMenuItem[];
+  Resource: SidebarMenuItem[];
+};
+export type Question = {
+  createdAt: string;
+  id?: string;
+  mediaUrl?: string | null;
+  submissionVersionId?: string;
+  tags?: string[];
+  text: string;
+};
+
+export type QuestionRow = {
+  id: string;
+  text: string;
+  createdAt: string;
+
+  interview: {
+    companyName?: string;
+    role?: string;
+    round?: string;
+    interviewDate: string;
+  };
+};
+
+export type EditActionTypes = "approved" | "rejected" | "delete";
+// app/components/ConfirmationDialog/types.ts
+
+export type ConfirmAction =
+  | "delete"
+  | "approved"
+  | "rejected"
+  | "save"
+  | "edit"
+  | "submit"
+  | "cancel";
+
+export type ConfirmEntity = "user" | "invite" | "submission" | "item"; // fallback / generic

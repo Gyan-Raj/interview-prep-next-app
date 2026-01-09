@@ -67,8 +67,8 @@ export async function deleteUser_Admin(params?: { userId?: string }) {
     },
   });
 }
-export async function cancelInvite_Admin(inviteId: string) {
-  return api.post("/admin/invites/cancel", { inviteId });
+export async function cancelInvite_Admin(id: string) {
+  return api.post("/admin/invites/cancel", { id });
 }
 
 /** Resource Manager routes */
@@ -109,17 +109,17 @@ export async function updateRoles_ResourceManager(
 ) {
   return api.post("/resource-manager/roles", payload);
 }
-export async function cancelInvite_ResourceManager(inviteId: string) {
-  return api.post("/resource-manager/invites/cancel", { inviteId });
+export async function cancelInvite_ResourceManager(id: string) {
+  return api.post("/resource-manager/invites/cancel", { id });
 }
 export async function getSubmissions_ResourceManager(params?: {
-  searchText?: string;
-  submissionStatusIds?: string[];
+  query?: string;
+  submissionStatuses?: string[];
 }) {
   return api.get("/resource-manager/submissions", {
     params: {
-      query: params?.searchText,
-      submissionStatusIds: params?.submissionStatusIds?.join(","), // important
+      query: params?.query,
+      submissionStatuses: params?.submissionStatuses?.join(","), // important
     },
   });
 }
@@ -127,6 +127,13 @@ export async function updateSubmission_ResourceManager(
   payload: UpdateSubmissionStatus_ResourceManager_Types
 ) {
   return api.patch("/resource-manager/submissions", payload);
+}
+export async function deleteSubmission_ResourceManager(params: {
+  submissionVersionId: string;
+}) {
+  return api.delete(
+    `/resource-manager/submissions/${params.submissionVersionId}`
+  );
 }
 export async function getCompanies_ResourceManager(params?: {
   query?: string;
@@ -169,20 +176,48 @@ export async function getMySubmissions_Resource(params?: {
   submissionId?: string;
 }) {
   return api.get(
-    params && params.submissionId
-      ? `/resource/submissions/:${params.submissionId}`
+    params?.submissionId
+      ? `/resource/submissions/${params.submissionId}` // ✅ FIX
       : `/resource/submissions`,
     {
       params: {
-        query: params?.searchText,
-        submissionStatusIds: params?.submissionStatusIds?.join(","), // important
+        searchText: params?.searchText, // also fix key name
+        submissionStatusIds: params?.submissionStatusIds?.join(","),
       },
     }
   );
 }
-
 export async function updateSubmissionDetail_Resource(
   payload: UpdateSubmissionDetail_Resource_Types
 ) {
   return api.patch("/resource/submissions", payload);
+}
+export async function getAllQuestions(params: {
+  searchText?: string;
+  roleIds?: string[];
+  companyIds?: string[];
+  roundIds?: string[];
+  approvedOnly?: boolean;
+  sort?: "asc" | "desc";
+}) {
+  return api.get("/resource/questions", {
+    params: {
+      query: params.searchText,
+      roleIds: params.roleIds?.join(","),
+      companyIds: params.companyIds?.join(","),
+      roundIds: params.roundIds?.join(","),
+      approvedOnly: params.approvedOnly,
+      sort: params.sort,
+    },
+  });
+}
+
+export async function getAllCompanies() {
+  return api.get("/resource/submissions/companies");
+}
+export async function getAllRoles() {
+  return api.get("/resource/submissions/interview-roles");
+}
+export async function getAllRounds() {
+  return api.get("/resource/submissions/interview-rounds");
 }

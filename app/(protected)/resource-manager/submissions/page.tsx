@@ -3,18 +3,23 @@
 import {
   getSubmissions_ResourceManager,
   updateSubmission_ResourceManager,
+  deleteSubmission_ResourceManager,
 } from "@/app/actions";
-import { SubmissionRow, SubmissionStatusKey } from "@/app/types";
+import {
+  EditActionTypes,
+  SubmissionRow,
+  SubmissionStatusKey,
+} from "@/app/types";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import { toSentenceCase } from "@/app/utils/utils";
-import SubmissionList from "@/app/(protected)/resource-manager/submissions/SubmissionsList/SubmissionList";
 import { Filter } from "lucide-react";
 import RequestSubmissionModal from "@/app/(protected)/resource-manager/submissions/RequestSubmissionModal";
-import ConfirmSubmissionDialog from "@/app/(protected)/resource-manager/submissions/ConfirmSubmissionDialog";
 import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
-
-type EditActionTypes = "approve" | "reject";
+import { useRouter } from "next/navigation";
+import SubmissionsList from "@/app/components/submissions/SubmissionsList";
+import SubmissionActionsMenu from "@/app/components/submissions/SubmissionActionsMenu";
+import ConfirmationDialog from "@/app/components/ConfirmationDialog";
 
 export default function ResourceManagerSubmissions() {
   const [submissions, setSubmissions] = useState<SubmissionRow[]>([]);
@@ -25,23 +30,26 @@ export default function ResourceManagerSubmissions() {
 
   const [selectedSubmissionVersion, setSelectedSubmissionVersion] =
     useState<SubmissionRow | null>(null);
-  const [showEditSubmissionStatus, setShowEditSubmissionStatus] =
-    useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showAddSubmission, setShowAddSubmission] = useState(false);
-  const [editAction, setEditAction] = useState<EditActionTypes>("approve");
+  const [editAction, setEditAction] = useState<EditActionTypes>("approved");
 
   const allSubmissionStatus = SUBMISSION_STATUS_CONFIG;
   const [selectedSubmissionStatus, setSelectedSubmissionStatus] = useState<
     SubmissionStatusKey[]
   >(SUBMISSION_STATUS_CONFIG.map((s) => s.key));
 
+  const router = useRouter();
+
   const debouncedQuery = useDebounce(query, 400);
 
   async function fetchPendingSubmissions() {
+    setListLoading(true);
+
     try {
       const res = await getSubmissions_ResourceManager({
-        searchText: debouncedQuery,
-        submissionStatusIds:
+        query: debouncedQuery,
+        submissionStatuses:
           selectedSubmissionStatus.length === allSubmissionStatus.length
             ? undefined
             : selectedSubmissionStatus,
@@ -57,13 +65,16 @@ export default function ResourceManagerSubmissions() {
     }
   }
 
-  const debouncedSubmissionStatusIds = useDebounce(selectedSubmissionStatus, 400);
+  const debouncedSubmissionStatusIds = useDebounce(
+    selectedSubmissionStatus,
+    400
+  );
 
-  useEffect(() => {
-    if (allSubmissionStatus.length > 0) {
-      fetchPendingSubmissions(); // 👈 initial page load
-    }
-  }, [allSubmissionStatus]);
+  // useEffect(() => {
+  //   if (allSubmissionStatus.length > 0) {
+  //     fetchPendingSubmissions(); // 👈 initial page load
+  //   }
+  // }, [allSubmissionStatus]);
 
   useEffect(() => {
     if (allSubmissionStatus.length > 0) {
@@ -74,22 +85,21 @@ export default function ResourceManagerSubmissions() {
   async function updateSubmissionStatus() {
     try {
       if (!selectedSubmissionVersion) return;
-      const res = await updateSubmission_ResourceManager({
-        submissionVersionId: selectedSubmissionVersion.submissionVersionId,
-        action: editAction.toUpperCase(), // "APPROVED" | "REJECTED"
-      });
-      if (res.status === 200) {
-        const { updatedSubmission } = res.data;
-
-        setSubmissions((prev) =>
-          prev.map((u) =>
-            u.submissionVersionId === updatedSubmission.submissionVersionId
-              ? updatedSubmission
-              : u
-          )
-        );
+      let res;
+      if (editAction === "delete") {
+        res = await deleteSubmission_ResourceManager({
+          submissionVersionId: selectedSubmissionVersion.submissionVersionId,
+        });
+      } else {
+        res = await updateSubmission_ResourceManager({
+          submissionVersionId: selectedSubmissionVersion.submissionVersionId,
+          action: editAction.toUpperCase(), // "APPROVED" | "REJECTED" | "DELETE"
+        });
       }
-      setShowEditSubmissionStatus(false);
+      if (res.status === 200) {
+        fetchPendingSubmissions();
+      }
+      setShowConfirmDialog(false);
     } catch (error) {
       console.error(
         "Error updating submission status(api/resource-manager/submission)",
@@ -245,23 +255,57 @@ export default function ResourceManagerSubmissions() {
       {/* Submissions List */}
       <div style={{ position: "relative" }}>
         {!listLoading && (
-          <SubmissionList
+          <SubmissionsList
             submissions={submissions}
-            onEdit={(submission, action) => {
-              setSelectedSubmissionVersion(submission);
-              setShowEditSubmissionStatus(true);
-              setEditAction(action);
+            renderActions={(submission) => {
+              const actions: { key: EditActionTypes; label: string }[] = [];
+
+              if (
+                submission.status === "PENDING_REVIEW" &&
+                submission.versionNumber !== 1
+              ) {
+                actions.push({ key: "approved", label: "Approve" });
+                actions.push({ key: "rejected", label: "Reject" });
+              }
+
+              if (
+                submission.status === "DRAFT" ||
+                (submission.versionNumber === 1 && !submission.submittedAt)
+              ) {
+                actions.push({ key: "delete", label: "Delete" });
+              }
+
+              return (
+                <SubmissionActionsMenu
+                  actions={actions}
+                  onAction={(action) => {
+                    setSelectedSubmissionVersion(submission);
+                    setEditAction(action);
+                    setShowConfirmDialog(true);
+                  }}
+                />
+              );
             }}
           />
         )}
       </div>
 
-      {showEditSubmissionStatus && selectedSubmissionVersion && (
-        <ConfirmSubmissionDialog
-          selectedSubmissionVersion={selectedSubmissionVersion}
-          onClose={() => setShowEditSubmissionStatus(false)}
+      {showConfirmDialog && selectedSubmissionVersion && (
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          action={editAction}
+          entity="submission"
+          details={
+            <>
+              <div>{selectedSubmissionVersion.interview.companyName}</div>
+              <div className="opacity-70">
+                {selectedSubmissionVersion.interview.role} ·{" "}
+                {selectedSubmissionVersion.interview.round}
+              </div>
+            </>
+          }
+          onCancel={() => setShowConfirmDialog(false)}
           onConfirm={updateSubmissionStatus}
-          editAction={editAction}
         />
       )}
 
