@@ -233,13 +233,7 @@ export default function ResourceSubmissionDetailPage() {
 
       {/* ================= FOOTER ACTIONS ================= */}
       {isEditable && (
-        <div
-          className="border-t px-6 py-3 flex justify-end gap-3"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            borderColor: "var(--color-border)",
-          }}
-        >
+        <div className="px-2 py-1 flex justify-end gap-6 text-sm">
           {mode === "view" ? (
             <>
               <button

@@ -95,7 +95,7 @@ export default function RequestSubmissionModal({
       onClose={onClose}
       footer={
         <>
-          <button onClick={onClose} className="px-4 py-2 text-sm border">
+          <button onClick={onClose} className="btn-secondary px-4 py-2 text-sm border">
             Cancel
           </button>
 

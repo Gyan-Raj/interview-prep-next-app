@@ -97,6 +97,7 @@ export async function GET(req: Request) {
     },
     orderBy: { createdAt: "desc" },
   });
+  console.log(latestVersions, "latestVersions sub");
 
   // 5️⃣ Shape response
   const response = latestVersions.map((v) => ({

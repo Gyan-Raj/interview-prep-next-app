@@ -7,6 +7,7 @@ export async function GET(
   context: { params: Promise<{ submissionId: string }> }
 ) {
   const authUser = await getAuthUser();
+  console.log("Hi");
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -33,6 +34,7 @@ export async function GET(
               company: true,
               role: true,
               round: true,
+              resource: true,
             },
           },
         },
@@ -49,6 +51,7 @@ export async function GET(
       { status: 404 }
     );
   }
+  console.log(latestVersion, "latestVersion");
 
   return NextResponse.json(
     {
@@ -70,6 +73,12 @@ export async function GET(
         question: q,
         createdAt: q.createdAt.toISOString(),
       })),
+      resource: {
+        id: latestVersion.submission.interview.resource.id,
+        name: latestVersion.submission.interview.resource.name,
+        email: latestVersion.submission.interview.resource.email,
+        phone: latestVersion.submission.interview.resource.phone,
+      },
     },
     { status: 200 }
   );
