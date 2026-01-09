@@ -38,7 +38,7 @@ export default function ConfirmationDialog({
         <p className="text-sm opacity-80">
           Are you sure you want to {action}{" "}
           <span className="font-medium">
-            this submission by {selectedSubmissionVersion.resource.name} for{" "}
+            this submission by {selectedSubmissionVersion.resource?.name} for{" "}
             {selectedSubmissionVersion.interview.companyName} ·{" "}
             {selectedSubmissionVersion.interview.round}
           </span>
