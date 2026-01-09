@@ -150,7 +150,7 @@ export default function ResourceSubmissionDetailPage() {
           boxShadow: "var(--shadow-card)",
         }}
       >
-        <div className="relative flex items-start justify-between px-4 py-2 cursor-pointer hover:bg-muted">
+        <div className="relative flex items-start justify-between px-4 py-2">
           <div
             className={`absolute top-0 right-0 ${
               statusBadgeClassMap[submission.status]
