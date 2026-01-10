@@ -18,30 +18,32 @@ type JwtPayload = {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  /**
+   * 1. Allow public routes
+   */
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/unauthorized") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico")
+  ) {
+    return NextResponse.next();
+  }
+
+  /**
+   * 2. Read token
+   */
   const accessToken = req.cookies.get("accessToken")?.value;
 
   if (!accessToken) {
-    const refreshRes = await fetch(new URL("/api/refresh", req.url), {
-      method: "POST",
-      headers: {
-        cookie: req.headers.get("cookie") || "",
-      },
-    });
-
-    if (!refreshRes.ok) {
-      return redirectToLogin(req);
-    }
-
-    const response = NextResponse.next();
-
-    const setCookie = refreshRes.headers.get("set-cookie");
-    if (setCookie) {
-      response.headers.set("set-cookie", setCookie);
-    }
-
-    return response;
+    return redirectToLogin(req);
   }
 
+  /**
+   * 3. Verify token
+   */
   let payload: JwtPayload;
   try {
     payload = jwt.verify(accessToken, secretKey) as JwtPayload;
@@ -50,8 +52,7 @@ export async function proxy(req: NextRequest) {
   }
 
   /**
-   * Fetch live auth context from DB
-   * (DO NOT trust JWT for roles)
+   * 4. Fetch live auth context
    */
   const authContextRes = await fetch(new URL("/api/context", req.url), {
     headers: { cookie: req.headers.get("cookie") || "" },
@@ -69,12 +70,9 @@ export async function proxy(req: NextRequest) {
 
   const allowedBasePath = ROLE_ROUTE_MAP[activeRole.name as RoleOps];
 
-  // Landing page
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL(allowedBasePath, req.url));
-  }
-
-  // Role guard
+  /**
+   * 5. Role guard
+   */
   if (!pathname.startsWith(allowedBasePath)) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
@@ -83,14 +81,9 @@ export async function proxy(req: NextRequest) {
 }
 
 function redirectToLogin(req: NextRequest) {
-  return NextResponse.redirect(new URL("/", req.url));
+  return NextResponse.redirect(new URL("/login", req.url));
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/admin/:path*",
-    "/resource-manager/:path*",
-    "/resource/:path*",
-  ],
+  matcher: ["/admin/:path*", "/resource-manager/:path*", "/resource/:path*"],
 };

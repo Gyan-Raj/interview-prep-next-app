@@ -137,9 +137,7 @@ export async function updateSubmission_ResourceManager(
 export async function deleteSubmission_ResourceManager(params: {
   submissionId: string;
 }) {
-  return api.delete(
-    `/resource-manager/submissions/${params.submissionId}`
-  );
+  return api.delete(`/resource-manager/submissions/${params.submissionId}`);
 }
 export async function getCompanies_ResourceManager(params?: {
   searchText?: string;
@@ -217,7 +215,6 @@ export async function getAllQuestions(params: {
     },
   });
 }
-
 export async function getAllCompanies() {
   return api.get("/resource/submissions/companies");
 }

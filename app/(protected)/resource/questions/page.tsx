@@ -4,16 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { Filter } from "lucide-react";
 
 import { useDebounce, useOutsideClick } from "@/app/hooks/hooks";
-import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
+import { toSentenceCase } from "@/app/utils/utils";
 import {
   getAllQuestions,
   getAllCompanies,
   getAllRoles,
   getAllRounds,
 } from "@/app/actions";
-import List from "@/app/components/list/List";
 import { QuestionRow } from "@/app/types";
 import QuestionsList from "@/app/components/questions/QuestionsList";
+import { useRouter } from "next/navigation";
 
 type Option = {
   id: string;
@@ -45,6 +45,7 @@ function Questions() {
   const debouncedRoles = useDebounce(selectedRoles, 400);
   const debouncedCompanies = useDebounce(selectedCompanies, 400);
   const debouncedRounds = useDebounce(selectedRounds, 400);
+  const router = useRouter();
 
   const isAllRolesSelected =
     allRoles?.length > 0 && selectedRoles?.length === allRoles?.length;
@@ -103,7 +104,21 @@ function Questions() {
     }
   }, [debouncedQuery, debouncedRoles, debouncedCompanies, debouncedRounds]);
 
+  const questionsCache = useRef<Map<string, QuestionRow[]>>(new Map());
+
   async function fetchQuestions() {
+    const cacheKey = JSON.stringify({
+      q: debouncedQuery,
+      r: debouncedRoles,
+      c: debouncedCompanies,
+      rd: debouncedRounds,
+    });
+
+    if (questionsCache.current.has(cacheKey)) {
+      setQuestions(questionsCache.current.get(cacheKey)!);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await getAllQuestions({
@@ -116,20 +131,21 @@ function Questions() {
       });
 
       if (res.status === 200) {
-        setQuestions(
-          res.data.questions.map((q: any) => ({
-            id: q.id,
-            text: q.text,
-            tags: q.tags,
-            mediaUrl: q.mediaUrl,
-            interview: {
-              companyName: q.interview?.companyName,
-              role: q.interview?.role,
-              round: q.interview?.round,
-              interviewDate: q.interview?.interviewDate,
-            },
-          }))
-        );
+        const normalized = res.data.questions.map((q: any) => ({
+          id: q.id,
+          text: q.text,
+          tags: q.tags,
+          mediaUrl: q.mediaUrl,
+          interview: {
+            companyName: q.interview?.companyName,
+            role: q.interview?.role,
+            round: q.interview?.round,
+            interviewDate: q.interview?.interviewDate,
+          },
+        }));
+
+        questionsCache.current.set(cacheKey, normalized);
+        setQuestions(normalized);
       }
     } finally {
       setLoading(false);
@@ -417,7 +433,13 @@ function Questions() {
         <QuestionsList
           questions={questions}
           onItemClick={(question) => {
-            console.log("Open question drawer:", question.id);
+            const params = new URLSearchParams({
+              role: question.interview.role ?? "",
+              text: question.text,
+            });
+            return router.push(
+              `/resource/questions/${question.id}?${params.toString()}`
+            );
           }}
           renderActions={() => ""}
         />

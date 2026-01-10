@@ -34,26 +34,26 @@ export default function SubmissionsList({
         kind: "submission" as const,
         data: s,
       }))}
-      getTitle={(item) =>
-        `${item.data.interview.companyName} · ${item.data.interview.role} · ${item.data.interview.round}`
+      getTitle={(submission) =>
+        `${submission.data.interview.companyName} · ${submission.data.interview.role} · ${submission.data.interview.round}`
       }
-      getSubtitle={(item) =>
-        item.data.resource
-          ? `${formatDisplayDate(item.data.interview.interviewDate)}`
+      getSubtitle={(submission) =>
+        submission.data.resource
+          ? `${formatDisplayDate(submission.data.interview.interviewDate)}`
           : ""
       }
-      getMetaData={(item) =>
-        item.data.resource
-          ? `${item.data.resource?.name} · ${item.data.resource?.email}`
-          : `${formatDisplayDate(item.data.interview.interviewDate)}`
+      getMetaData={(submission) =>
+        submission.data.resource
+          ? `${submission.data.resource?.name} · ${submission.data.resource?.email}`
+          : `${formatDisplayDate(submission.data.interview.interviewDate)}`
       }
-      getBadge={(item) =>
-        item.kind === "submission" ? (
-          <SubmissionStatusBadge submission={item.data} />
+      getBadge={(submission) =>
+        submission.kind === "submission" ? (
+          <SubmissionStatusBadge submission={submission.data} />
         ) : null
       }
-      getActions={(item) => renderActions(item.data)}
-      onItemClick={(item) => onItemClick?.(item.data)}
+      getActions={(submission) => renderActions(submission.data)}
+      onItemClick={(submission) => onItemClick?.(submission.data)}
     />
   );
 }

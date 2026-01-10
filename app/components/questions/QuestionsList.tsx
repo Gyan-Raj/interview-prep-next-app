@@ -24,19 +24,19 @@ export default function QuestionsList({
         kind: "question" as const,
         data: q,
       }))}
-      getTitle={(item) => item.data.text}
+      getTitle={(question) => question.data.text}
       getSubtitle={() => ""}
-      getMetaData={(item) =>
+      getMetaData={(question) =>
         [
-          item.data.interview.companyName,
-          item.data.interview.role,
-          item.data.interview.round,
-          formatDisplayDate(item.data.interview.interviewDate),
+          question.data.interview.companyName,
+          question.data.interview.role,
+          question.data.interview.round,
+          formatDisplayDate(question.data.interview.interviewDate),
         ]
           .filter(Boolean)
           .join(" · ")
       }
-      onItemClick={() => ""}
+      onItemClick={(question) => onItemClick?.(question.data)}
     />
   );
 }

@@ -188,3 +188,8 @@ export type ConfirmAction =
   | "cancel";
 
 export type ConfirmEntity = "user" | "invite" | "submission" | "item"; // fallback / generic
+
+export type Message = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};

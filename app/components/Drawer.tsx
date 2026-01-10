@@ -1,19 +1,16 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function Drawer({
   isOpen,
-  width = "40rem",
+  width = "480px",
   children,
 }: {
   isOpen: boolean;
   width?: string;
   children: ReactNode;
 }) {
-  const router = useRouter();
-
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -21,22 +18,31 @@ export default function Drawer({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay (visual only) */}
       <div
-        className="fixed inset-0 bg-black/40 z-40"
-        onClick={() => router.back()}
+        className={`fixed inset-0 z-40 transition-opacity duration-200 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
       />
 
       {/* Drawer */}
       <aside
-        className="fixed right-0 top-0 h-full bg-white z-50 shadow-xl transition-transform"
-        style={{ width }}
+        className={`
+          fixed right-0 top-0 z-50 h-full flex flex-col
+          transform transition-transform duration-200 ease-out
+          ${isOpen ? "translate-x-0" : "translate-x-full"}
+        `}
+        style={{
+          width,
+          backgroundColor: "var(--color-panel)",
+          borderLeft: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-card)",
+        }}
       >
-        <div className="h-full overflow-y-auto">{children}</div>
+        {children}
       </aside>
     </>
   );
