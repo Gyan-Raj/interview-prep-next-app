@@ -38,6 +38,10 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [roleModalOpen]);
+  const handleNavigate = () => {
+    const role = user?.activeRole?.name?.toLowerCase();
+    if (role) router.push(`/${role}/dashboard`);
+  };
 
   async function handleSwitchRole(roleId: string) {
     try {
@@ -76,8 +80,27 @@ export default function Navbar() {
       className="h-14 w-full border-b"
       style={{ borderColor: "var(--color-border)" }}
     >
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
-        <div className="text-lg font-semibold">Interview Ready</div>
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-0">
+        <div
+          onClick={handleNavigate}
+          className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px relative right-5"
+          style={{
+            backgroundColor: "var(--color-panel)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "0 6px 14px rgba(0,0,0,0.12)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 10px 22px rgba(0,0,0,0.18)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 6px 14px rgba(0,0,0,0.12)";
+          }}
+        >
+          <img src="/logo.png" alt="Interview Ready" className="h-6 w-6" />
+          <span className="text-lg font-semibold select-none">
+            Interview Ready
+          </span>
+        </div>
 
         <div className="flex items-center gap-3">
           {user && (
