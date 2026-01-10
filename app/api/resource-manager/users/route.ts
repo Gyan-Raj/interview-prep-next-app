@@ -9,14 +9,12 @@ const ROLE_RANK: Record<string, number> = {
 };
 
 export async function GET(req: Request) {
-  // 1️⃣ Auth check
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  // 2️⃣ Parse query params
   const { searchParams } = new URL(req.url);
 
   const query = searchParams.get("searchText")?.trim() || undefined;
@@ -25,21 +23,24 @@ export async function GET(req: Request) {
     ? roleIdsParam.split(",").filter(Boolean)
     : undefined;
 
-  // 3️⃣ Build where clause
   const where: any = {
-    id: {
-      not: authUser.id,
-    },
+    id: { not: authUser.id },
+
+    // 🚫 exclude ADMIN users
     roles: {
       none: {
-        role: {
-          name: "ADMIN",
-        },
+        role: { name: "ADMIN" },
+      },
+    },
+
+    // 🚫 exclude pending + expired invites
+    invites: {
+      none: {
+        usedAt: null,
       },
     },
   };
 
-  // 🔍 Search by name or email
   if (query) {
     where.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -48,30 +49,21 @@ export async function GET(req: Request) {
     ];
   }
 
-  // 🎭 Role filter (user must have ANY of the roles)
-  if (roleIds && roleIds.length > 0) {
+  if (roleIds?.length) {
     where.roles = {
-      some: {
-        roleId: {
-          in: roleIds,
+      AND: [
+        { none: { role: { name: "ADMIN" } } },
+        {
+          some: {
+            roleId: { in: roleIds },
+          },
         },
-      },
+      ],
     };
   }
 
-  // 4️⃣ Fetch users
   const users = await prisma.user.findMany({
-    where: {
-      ...where,
-      invites: {
-        none: {
-          usedAt: null,
-          expiresAt: {
-            gt: new Date(),
-          },
-        },
-      },
-    },
+    where,
     include: {
       roles: {
         include: { role: true },
@@ -82,7 +74,6 @@ export async function GET(req: Request) {
     },
   });
 
-  // 5️⃣ Shape response
   const response = users.map((user) => ({
     id: user.id,
     name: user.name,

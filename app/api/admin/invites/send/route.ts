@@ -1,8 +1,8 @@
 import { getAuthUser } from "@/app/lib/auth";
-import { sendInviteMail } from "@/app/lib/mail";
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/db/prisma";
 import crypto from "crypto";
+import { sendInviteMail } from "@/app/lib/mail/templates";
 
 export async function POST(req: Request) {
   // 1️⃣ Auth check (ADMIN only)

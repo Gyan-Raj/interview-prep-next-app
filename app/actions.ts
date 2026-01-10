@@ -1,6 +1,7 @@
 import api from "@/app/api";
 import {
   ChangePasswordTypes,
+  ConfirmAction,
   LoginType,
   RequestSubmissionPayload,
   SendInvite_Admin_Types,
@@ -67,8 +68,12 @@ export async function deleteUser_Admin(params?: { userId?: string }) {
     },
   });
 }
-export async function cancelInvite_Admin(id: string) {
-  return api.post("/admin/invites/cancel", { id });
+export async function inviteAction_Admin(id: string, action: ConfirmAction) {
+  if (action === "cancel" || action === "delete")
+    return api.post("/admin/invites/cancel", { id });
+  if (action === "send-again")
+    return api.post("/admin/invites/send-again", { id });
+  if (action === "reminder") return api.post("/admin/invites/reminder", { id });
 }
 
 /** Resource Manager routes */
@@ -109,8 +114,16 @@ export async function updateRoles_ResourceManager(
 ) {
   return api.post("/resource-manager/roles", payload);
 }
-export async function cancelInvite_ResourceManager(id: string) {
-  return api.post("/resource-manager/invites/cancel", { id });
+export async function inviteAction_ResourceManager(
+  id: string,
+  action: ConfirmAction
+) {
+  if (action === "cancel" || action === "delete")
+    return api.post("/resource-manager/invites/cancel", { id });
+  if (action === "send-again")
+    return api.post("/resource-manager/invites/send-again", { id });
+  if (action === "reminder")
+    return api.post("/resource-manager/invites/reminder", { id });
 }
 export async function getSubmissions_ResourceManager(params?: {
   searchText?: string;

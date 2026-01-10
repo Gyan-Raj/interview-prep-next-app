@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
+import { sendUserDeletedMail } from "@/app/lib/mail/templates";
 
 const ROLE_RANK: Record<string, number> = {
   RESOURCE: 1,
@@ -9,13 +10,12 @@ const ROLE_RANK: Record<string, number> = {
 };
 
 export async function GET(req: Request) {
-  // 1️⃣ Auth check
   const authUser = await getAuthUser();
+
   if (!authUser || authUser.activeRole?.name !== "ADMIN") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  // 2️⃣ Parse query params
   const { searchParams } = new URL(req.url);
 
   const query = searchParams.get("searchText")?.trim() || undefined;
@@ -24,14 +24,17 @@ export async function GET(req: Request) {
     ? roleIdsParam.split(",").filter(Boolean)
     : undefined;
 
-  // 3️⃣ Build where clause
   const where: any = {
-    id: {
-      not: authUser.id,
+    id: { not: authUser.id },
+
+    // 🚫 exclude pending + expired invites
+    invites: {
+      none: {
+        usedAt: null,
+      },
     },
   };
 
-  // 🔍 Search by name or email
   if (query) {
     where.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -40,30 +43,16 @@ export async function GET(req: Request) {
     ];
   }
 
-  // 🎭 Role filter (user must have ANY of the roles)
-  if (roleIds && roleIds.length > 0) {
+  if (roleIds?.length) {
     where.roles = {
       some: {
-        roleId: {
-          in: roleIds,
-        },
+        roleId: { in: roleIds },
       },
     };
   }
 
-  // 4️⃣ Fetch users
   const users = await prisma.user.findMany({
-    where: {
-      ...where,
-      invites: {
-        none: {
-          usedAt: null,
-          expiresAt: {
-            gt: new Date(),
-          },
-        },
-      },
-    },
+    where,
     include: {
       roles: {
         include: { role: true },
@@ -74,7 +63,6 @@ export async function GET(req: Request) {
     },
   });
 
-  // 5️⃣ Shape response
   const response = users.map((user) => ({
     id: user.id,
     name: user.name,
@@ -166,6 +154,14 @@ export async function DELETE(req: Request) {
   // 6️⃣ Delete user (cascades everything)
   await prisma.user.delete({
     where: { id: userId },
+  });
+
+  sendUserDeletedMail({
+    toEmail: user.email,
+    toName: user.name ?? undefined,
+    deletedByName: authUser.name ?? "Admin",
+  }).catch((err) => {
+    console.error("User deletion mail failed:", err);
   });
 
   // 7️⃣ Admin-safe response

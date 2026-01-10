@@ -1,10 +1,10 @@
-import { PendingInviteRow, QuestionRow, SubmissionRow, UserRow } from "@/app/types";
+import { InviteRow, QuestionRow, SubmissionRow, UserRow } from "@/app/types";
 
 // components/ListCard.tsx
 export type ListCardItem =
   | { kind: "submission"; data: SubmissionRow }
   | { kind: "user"; data: UserRow }
-  | { kind: "invite"; data: PendingInviteRow }
+  | { kind: "invite"; data: InviteRow }
   | { kind: "question"; data: QuestionRow };
 
 type ListCardProps<T extends ListCardItem> = {

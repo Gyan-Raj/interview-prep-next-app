@@ -19,9 +19,6 @@ export default async function AdminDashboard() {
         invites: {
           none: {
             usedAt: null,
-            expiresAt: {
-              gt: new Date(),
-            },
           },
         },
       },
@@ -35,6 +32,10 @@ export default async function AdminDashboard() {
     where: {
       usedAt: null,
       expiresAt: { gt: new Date() },
+      user: {
+        password: null,
+        sessions: { none: {} },
+      },
     },
     include: {
       user: {
@@ -49,12 +50,44 @@ export default async function AdminDashboard() {
     },
   });
 
+  const expiredInvites = await prisma.userInvite.findMany({
+    where: {
+      usedAt: null,
+      expiresAt: { lt: new Date() },
+
+      user: {
+        password: null,
+        sessions: { none: {} },
+      },
+    },
+    include: {
+      user: {
+        include: {
+          roles: {
+            include: { role: true },
+          },
+        },
+      },
+    },
+  });
+
   return (
     <AdminDashboardClient
       user={user}
       roles={roles}
       roleCounts={roleCounts}
       pendingInvites={pendingInvites.map((i) => ({
+        id: i.id,
+        userId: i.user.id,
+        name: i.user.name ?? undefined,
+        email: i.user.email,
+        phone: i.user.phone ?? undefined,
+        roles: i.user.roles.map((ur) => ({
+          id: ur.role.id,
+          name: ur.role.name,
+        })),
+      }))}
+      expiredInvites={expiredInvites.map((i) => ({
         id: i.id,
         userId: i.user.id,
         name: i.user.name ?? undefined,

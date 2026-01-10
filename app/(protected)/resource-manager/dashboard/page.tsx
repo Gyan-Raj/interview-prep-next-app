@@ -6,17 +6,19 @@ import ResourceManagerDashboardClient from "./ResourceManagerDashboardClient";
 export default async function ResourceManagerDashboard() {
   const user = await getAuthUser();
 
-  if (!user || user?.activeRole?.name !== "RESOURCE MANAGER") {
+  if (!user || user.activeRole?.name !== "RESOURCE MANAGER") {
     notFound();
   }
 
+  /* ---------------- Roles (exclude ADMIN) ---------------- */
+
   const roles = await prisma.role.findMany({
     where: {
-      name: {
-        not: "ADMIN",
-      },
+      name: { not: "ADMIN" },
     },
   });
+
+  /* ---------------- Role counts (ACTIVE USERS ONLY) ---------------- */
 
   const roleCounts = await prisma.userRole.groupBy({
     by: ["roleId"],
@@ -29,10 +31,7 @@ export default async function ResourceManagerDashboard() {
       user: {
         invites: {
           none: {
-            usedAt: null,
-            expiresAt: {
-              gt: new Date(),
-            },
+            usedAt: null, // 🚫 excludes BOTH pending & expired
           },
         },
       },
@@ -42,23 +41,51 @@ export default async function ResourceManagerDashboard() {
     },
   });
 
+  /* ---------------- Pending Invites ---------------- */
+
   const pendingInvites = await prisma.userInvite.findMany({
     where: {
       usedAt: null,
       expiresAt: { gt: new Date() },
+      user: {
+        password: null,
+        sessions: { none: {} },
+      },
     },
     include: {
       user: {
         include: {
           roles: {
-            include: {
-              role: true,
-            },
+            include: { role: true },
           },
         },
       },
     },
   });
+
+  /* ---------------- Expired Invites ---------------- */
+
+  const expiredInvites = await prisma.userInvite.findMany({
+    where: {
+      usedAt: null,
+      expiresAt: { lt: new Date() },
+      user: {
+        password: null,
+        sessions: { none: {} },
+      },
+    },
+    include: {
+      user: {
+        include: {
+          roles: {
+            include: { role: true },
+          },
+        },
+      },
+    },
+  });
+
+  /* ---------------- Submissions (UNCHANGED) ---------------- */
 
   const pendingSubmissionsCount = await prisma.submissionVersion.count({
     where: {
@@ -68,7 +95,7 @@ export default async function ResourceManagerDashboard() {
 
   const pendingSubmissions = await prisma.submissionVersion.findMany({
     where: {
-      status: "PENDING_REVIEW", // keep or adjust if needed
+      status: "PENDING_REVIEW",
     },
     select: {
       id: true,
@@ -82,15 +109,9 @@ export default async function ResourceManagerDashboard() {
             select: {
               id: true,
               interviewDate: true,
-              company: {
-                select: { name: true },
-              },
-              role: {
-                select: { name: true },
-              },
-              round: {
-                select: { name: true },
-              },
+              company: { select: { name: true } },
+              role: { select: { name: true } },
+              round: { select: { name: true } },
               resource: {
                 select: {
                   id: true,
@@ -108,6 +129,8 @@ export default async function ResourceManagerDashboard() {
       submittedAt: "desc",
     },
   });
+
+  /* ---------------- Render ---------------- */
 
   return (
     <ResourceManagerDashboardClient
@@ -135,17 +158,24 @@ export default async function ResourceManagerDashboard() {
           phone: sv.submission.interview.resource.phone ?? undefined,
         },
       }))}
-      pendingInvites={pendingInvites.map((i) => ({
-        id: i.id,
-        userId: i.user.id,
-        name: i.user.name ?? undefined,
-        email: i.user.email,
-        phone: i.user.phone ?? undefined,
-        roles: i.user.roles.map((ur) => ({
-          id: ur.role.id,
-          name: ur.role.name,
-        })),
-      }))}
+      pendingInvites={pendingInvites.map(mapInvite)}
+      expiredInvites={expiredInvites.map(mapInvite)}
     />
   );
+}
+
+/* ---------------- Shared mapper ---------------- */
+
+function mapInvite(i: any) {
+  return {
+    id: i.id,
+    userId: i.user.id,
+    name: i.user.name ?? undefined,
+    email: i.user.email,
+    phone: i.user.phone ?? undefined,
+    roles: i.user.roles.map((ur: any) => ({
+      id: ur.role.id,
+      name: ur.role.name,
+    })),
+  };
 }

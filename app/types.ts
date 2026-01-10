@@ -50,7 +50,7 @@ type DisplayRole = {
   name: string;
 };
 
-export type PendingInviteRow = {
+export type InviteRow = {
   id: string;
   userId: string;
   name?: string;
@@ -185,6 +185,8 @@ export type ConfirmAction =
   | "save"
   | "edit"
   | "submit"
+  | "send-again"
+  | "reminder"
   | "cancel";
 
 export type ConfirmEntity = "user" | "invite" | "submission" | "item"; // fallback / generic

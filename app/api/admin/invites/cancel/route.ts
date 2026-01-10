@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
+import { sendInviteCancelledMail } from "@/app/lib/mail/templates";
 
 export async function POST(req: Request) {
   // 1️⃣ Auth check
@@ -66,6 +67,12 @@ export async function POST(req: Request) {
       where: { id: invite.userId },
     }),
   ]);
+
+  sendInviteCancelledMail({
+    toEmail: invite.user.email,
+    toName: invite.user.name ?? undefined,
+    cancelledByRole: "ADMIN",
+  }).catch(() => {});
 
   return NextResponse.json(
     { message: "Invite cancelled and user removed" },

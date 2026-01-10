@@ -2,12 +2,11 @@ import type {
   ConfirmAction,
   ConfirmEntity,
   Message,
-  PendingInviteRow,
+  InviteRow,
   RoleOps,
   SubmissionRow,
   UserRow,
 } from "@/app/types";
-import { statusBadgeClassMap } from "../constants/constants";
 
 export function toSentenceCase(role: string): string {
   if (!role) return "";
@@ -26,7 +25,7 @@ export const roleDashboardRoute: Record<RoleOps, string> = {
 };
 
 export async function copyInviteLink(
-  invite: PendingInviteRow,
+  invite: InviteRow,
   onAfterCopy?: () => void
 ) {
   try {
@@ -76,11 +75,11 @@ export function canRMDeleteUser(user: UserRow) {
   );
 }
 
-export function canAdminCancelInvite(invite: PendingInviteRow) {
+export function canAdminCancelInvite(invite: InviteRow) {
   return !invite.roles.some((r) => r.name === "ADMIN");
 }
 
-export function canRMCancelInvite(invite: PendingInviteRow) {
+export function canRMCancelInvite(invite: InviteRow) {
   return !invite.roles.some((r) =>
     ["ADMIN", "RESOURCE MANAGER"].includes(r.name)
   );
@@ -90,11 +89,26 @@ export function getConfirmationTitle(
   action: ConfirmAction,
   entity: ConfirmEntity
 ) {
-  return `${toSentenceCase(action)} ${entity}?`;
-}
+  let readableAction = "";
+  switch (action) {
+    case "approved":
+      readableAction = "Approve";
+      break;
+    case "rejected":
+      readableAction = "Reject";
+      break;
+    case "send-again":
+      readableAction = "Send new";
+      break;
+    case "reminder":
+      readableAction = "Send reminder for the";
+      break;
+    default:
+      toSentenceCase(action);
+      break;
+  }
 
-export function getConfirmationMessage(action: ConfirmAction) {
-  return `Are you sure you want to ${action}?`;
+  return `${readableAction} ${entity}?`;
 }
 
 export function buildSystemPrompt(role: string): Message {

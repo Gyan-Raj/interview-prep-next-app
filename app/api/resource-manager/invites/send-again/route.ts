@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
-import { sendInviteCancelledMail } from "@/app/lib/mail/templates";
+import crypto from "crypto";
+import { sendInviteMail } from "@/app/lib/mail/templates";
 
 export async function POST(req: Request) {
-  // 1️⃣ Auth check
+  // 1️⃣ Auth check (RESOURCE MANAGER only)
   const authUser = await getAuthUser();
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -20,17 +21,16 @@ export async function POST(req: Request) {
     );
   }
 
-  // 3️⃣ Fetch invite WITH user roles
+  // 3️⃣ Fetch invite + user
   const invite = await prisma.userInvite.findUnique({
-    where: { id: id },
+    where: { id },
     include: {
       user: {
         include: {
           roles: {
-            include: {
-              role: true,
-            },
+            include: { role: true },
           },
+          sessions: true,
         },
       },
     },
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Invite not found" }, { status: 404 });
   }
 
+  // 4️⃣ Guard rails
   if (invite.usedAt) {
     return NextResponse.json(
       { message: "Invite already used" },
@@ -47,8 +48,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // 4️⃣ Authorization rule
-  // RESOURCE MANAGER cannot cancel invite for another RESOURCE MANAGER
+  if (invite.user.password || invite.user.sessions.length > 0) {
+    return NextResponse.json(
+      { message: "User already onboarded" },
+      { status: 409 }
+    );
+  }
+
+  // 5️⃣ Authorization rule
   const invitedUserRoleNames = invite.user.roles.map((ur) => ur.role.name);
 
   if (
@@ -56,29 +63,44 @@ export async function POST(req: Request) {
     invitedUserRoleNames.includes("ADMIN")
   ) {
     return NextResponse.json(
-      { message: "You are not authorized to revoke this invite" },
+      { message: "You are not authorized to resend this invite" },
       { status: 403 }
     );
   }
 
-  // 5️⃣ Atomic cleanup
+  // 6️⃣ Atomic replace invite (RESET 72 HOURS)
+  const newToken = crypto.randomBytes(32).toString("hex");
+  const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 72);
+
   await prisma.$transaction([
     prisma.userInvite.delete({
-      where: { id: id },
+      where: { id },
     }),
-    prisma.user.delete({
-      where: { id: invite.userId },
+    prisma.userInvite.create({
+      data: {
+        userId: invite.userId,
+        token: newToken,
+        expiresAt: newExpiresAt,
+        createdById: authUser.id,
+      },
     }),
   ]);
 
-  sendInviteCancelledMail({
+  // 7️⃣ Send mail
+  const inviteLink = `${process.env.APP_URL}/accept-invite?token=${newToken}`;
+
+  const mailSent = await sendInviteMail({
     toEmail: invite.user.email,
-    toName: invite.user.name ?? undefined,
-    cancelledByRole: "RESOURCE MANAGER",
-  }).catch(() => {});
+    toName: invite.user.name ?? "",
+    inviteLink,
+  });
 
   return NextResponse.json(
-    { message: "Invite cancelled and user removed" },
+    {
+      message: mailSent
+        ? "Invite re-sent successfully"
+        : "Invite recreated but mail could not be sent",
+    },
     { status: 200 }
   );
 }

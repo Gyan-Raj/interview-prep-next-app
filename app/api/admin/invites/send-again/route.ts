@@ -1,0 +1,93 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/app/db/prisma";
+import { getAuthUser } from "@/app/lib/auth";
+import crypto from "crypto";
+import { sendInviteMail } from "@/app/lib/mail/templates";
+
+export async function POST(req: Request) {
+  // 1️⃣ Auth check (ADMIN only)
+  const authUser = await getAuthUser();
+  if (!authUser || authUser.activeRole?.name !== "ADMIN") {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  // 2️⃣ Parse body
+  const { id } = (await req.json()) as { id?: string };
+
+  if (!id) {
+    return NextResponse.json(
+      { message: "Invite id is required" },
+      { status: 400 }
+    );
+  }
+
+  // 3️⃣ Fetch invite + user
+  const invite = await prisma.userInvite.findUnique({
+    where: { id },
+    include: {
+      user: {
+        include: {
+          roles: {
+            include: { role: true },
+          },
+          sessions: true,
+        },
+      },
+    },
+  });
+
+  if (!invite) {
+    return NextResponse.json({ message: "Invite not found" }, { status: 404 });
+  }
+
+  // 4️⃣ Guard rails
+  if (invite.usedAt) {
+    return NextResponse.json(
+      { message: "Invite already used" },
+      { status: 409 }
+    );
+  }
+
+  if (invite.user.password || invite.user.sessions.length > 0) {
+    return NextResponse.json(
+      { message: "User already onboarded" },
+      { status: 409 }
+    );
+  }
+
+  // 5️⃣ Replace invite (RESET 72 HOURS)
+  const newToken = crypto.randomBytes(32).toString("hex");
+  const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 72);
+
+  await prisma.$transaction([
+    prisma.userInvite.delete({
+      where: { id },
+    }),
+    prisma.userInvite.create({
+      data: {
+        userId: invite.userId,
+        token: newToken,
+        expiresAt: newExpiresAt,
+        createdById: authUser.id,
+      },
+    }),
+  ]);
+
+  // 6️⃣ Send mail
+  const inviteLink = `${process.env.APP_URL}/accept-invite?token=${newToken}`;
+
+  const mailSent = await sendInviteMail({
+    toEmail: invite.user.email,
+    toName: invite.user.name ?? "",
+    inviteLink,
+  });
+
+  return NextResponse.json(
+    {
+      message: mailSent
+        ? "Invite re-sent successfully"
+        : "Invite recreated but mail could not be sent",
+    },
+    { status: 200 }
+  );
+}

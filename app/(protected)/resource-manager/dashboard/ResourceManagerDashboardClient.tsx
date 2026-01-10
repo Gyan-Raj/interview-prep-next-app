@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { EditActionTypes, PendingInviteRow, SubmissionRow } from "@/app/types";
+import {
+  ConfirmAction,
+  EditActionTypes,
+  InviteRow,
+  SubmissionRow,
+} from "@/app/types";
 import { canRMCancelInvite, toSentenceCase } from "@/app/utils/utils";
 import {
-  cancelInvite_ResourceManager,
+  inviteAction_ResourceManager,
   updateSubmission_ResourceManager,
 } from "@/app/actions";
 import { useRouter } from "next/navigation";
@@ -19,20 +24,21 @@ export default function ResourceManagerDashboardClient({
   roles,
   roleCounts,
   pendingInvites,
+  expiredInvites,
   pendingSubmissionsCount,
   pendingSubmissions,
 }: {
   user: any;
   roles: any[];
   roleCounts: { roleId: string; _count: { roleId: number } }[];
-  pendingInvites: PendingInviteRow[];
+  pendingInvites: InviteRow[];
+  expiredInvites: InviteRow[];
   pendingSubmissionsCount: number;
   pendingSubmissions: SubmissionRow[];
 }) {
-  const [showCancelInvite, setShowCancelInvite] = useState(false);
-  const [selectedInvite, setSelectedInvite] = useState<PendingInviteRow | null>(
-    null
-  );
+  const [showConfirmationDialogOfInvite, setShowConfirmationDialogOfInvite] =
+    useState(false);
+  const [selectedInvite, setSelectedInvite] = useState<InviteRow | null>(null);
   const [selectedSubmission, setSelectedSubmission] =
     useState<SubmissionRow | null>(null);
   const [
@@ -41,6 +47,7 @@ export default function ResourceManagerDashboardClient({
   ] = useState(false);
   const [submissionAction, setSubmissionAction] =
     useState<EditActionTypes | null>(null);
+  const [inviteAction, setInviteAction] = useState<ConfirmAction | null>(null);
 
   const router = useRouter();
 
@@ -48,14 +55,17 @@ export default function ResourceManagerDashboardClient({
     roleCounts.map((rc) => [rc.roleId, rc._count.roleId])
   );
 
-  async function handleCancelInvite() {
-    if (!selectedInvite) return;
+  async function handleInviteAction() {
+    if (!selectedInvite || !inviteAction) return;
     try {
-      const res = await cancelInvite_ResourceManager(selectedInvite.id);
+      const res = await inviteAction_ResourceManager(
+        selectedInvite.id,
+        inviteAction
+      );
 
-      if (res.status === 200) {
+      if (res && res.status === 200) {
         setSelectedInvite(null);
-        setShowCancelInvite(false);
+        setShowConfirmationDialogOfInvite(false);
         router.refresh();
       }
     } catch (e) {
@@ -143,12 +153,43 @@ export default function ResourceManagerDashboardClient({
             invites={pendingInvites}
             renderActions={(invite) => (
               <UserInviteActionsMenu
+                actions={[
+                  { key: "cancel", label: "Cancel invite link" },
+                  { key: "reminder", label: "Send reminder" },
+                ]}
+                onAction={(action) => {
+                  setSelectedInvite(invite);
+                  setInviteAction(action);
+                  setShowConfirmationDialogOfInvite(true);
+                }}
                 invite={invite}
                 canCancel={canRMCancelInvite(invite)}
-                onCancel={() => {
+                isExpired={false}
+              />
+            )}
+          />
+        </div>
+      )}
+
+      {expiredInvites.length > 0 && (
+        <div>
+          <h2 className="text-lg font-medium mb-4">Expired invites</h2>
+          <UserInvitesList
+            invites={expiredInvites}
+            renderActions={(invite) => (
+              <UserInviteActionsMenu
+                actions={[
+                  { key: "delete", label: "Delete invite link" },
+                  { key: "send-again", label: "Send again" },
+                ]}
+                onAction={(action) => {
                   setSelectedInvite(invite);
-                  setShowCancelInvite(true);
+                  setInviteAction(action);
+                  setShowConfirmationDialogOfInvite(true);
                 }}
+                invite={invite}
+                canCancel={canRMCancelInvite(invite)}
+                isExpired={true}
               />
             )}
           />
@@ -183,10 +224,10 @@ export default function ResourceManagerDashboardClient({
           />
         )}
 
-      {showCancelInvite && selectedInvite && (
+      {showConfirmationDialogOfInvite && selectedInvite && inviteAction && (
         <ConfirmationDialog
-          open={showCancelInvite}
-          action="cancel"
+          open={showConfirmationDialogOfInvite}
+          action={inviteAction}
           entity="invite"
           details={
             <>
@@ -199,8 +240,8 @@ export default function ResourceManagerDashboardClient({
           }
           confirmLabel="Yes, cancel"
           cancelLabel="No"
-          onCancel={() => setShowCancelInvite(false)}
-          onConfirm={handleCancelInvite}
+          onCancel={() => setShowConfirmationDialogOfInvite(false)}
+          onConfirm={handleInviteAction}
         />
       )}
     </div>

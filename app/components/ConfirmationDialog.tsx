@@ -3,10 +3,7 @@
 
 import { toSentenceCase } from "../utils/utils";
 import { ConfirmAction, ConfirmEntity } from "@/app/types";
-import {
-  getConfirmationTitle,
-  getConfirmationMessage,
-} from "@/app/utils/utils";
+import { getConfirmationTitle } from "@/app/utils/utils";
 
 export default function ConfirmationDialog({
   open,
@@ -50,11 +47,6 @@ export default function ConfirmationDialog({
           {getConfirmationTitle(action, entity)}
         </h2>
 
-        {/* Body */}
-        <p className="text-sm opacity-80 mb-4">
-          {getConfirmationMessage(action)}
-        </p>
-
         {details && (
           <div
             className="mb-4 p-3 text-sm"
@@ -72,7 +64,7 @@ export default function ConfirmationDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 text-sm"
+            className="btn-secondary px-4 py-2 text-sm"
           >
             {cancelLabel}
           </button>

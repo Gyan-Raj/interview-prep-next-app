@@ -1,5 +1,5 @@
 import List from "@/app/components/list/List";
-import { PendingInviteRow } from "@/app/types";
+import { InviteRow } from "@/app/types";
 import { toSentenceCase } from "@/app/utils/utils";
 
 export default function UserInvitesList({
@@ -7,8 +7,8 @@ export default function UserInvitesList({
   renderActions,
   emptyMessage = "No pending invites.",
 }: {
-  invites: PendingInviteRow[];
-  renderActions: (invite: PendingInviteRow) => React.ReactNode;
+  invites: InviteRow[];
+  renderActions: (invite: InviteRow) => React.ReactNode;
   emptyMessage?: string;
 }) {
   if (invites.length === 0) {

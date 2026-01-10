@@ -1,17 +1,21 @@
 "use client";
 
-import { PendingInviteRow } from "@/app/types";
+import { ConfirmAction, InviteRow } from "@/app/types";
 import { copyInviteLink } from "@/app/utils/utils";
 import { useEffect, useRef, useState } from "react";
 
 export default function UserInviteActionsMenu({
+  actions,
+  onAction,
   invite,
   canCancel,
-  onCancel,
+  isExpired,
 }: {
-  invite: PendingInviteRow;
+  actions: { key: ConfirmAction; label: string }[];
+  onAction: (action: ConfirmAction) => void;
+  invite: InviteRow;
   canCancel: boolean;
-  onCancel: () => void;
+  isExpired: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -55,29 +59,30 @@ export default function UserInviteActionsMenu({
             boxShadow: "var(--shadow-card)",
           }}
         >
-          <button
-            disabled={!canCancel}
-            onClick={() => {
-              if (!canCancel) return;
-              setOpen(false);
-              onCancel();
-            }}
-            className="block w-full px-3 py-2 text-left text-sm"
-            style={{
-              cursor: canCancel ? "pointer" : "not-allowed",
-              color: canCancel ? undefined : "var(--color-border)",
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            Cancel Invite
-          </button>
-
-          <button
-            onClick={() => copyInviteLink(invite)}
-            className="block w-full px-3 py-2 text-left text-sm hover:opacity-80"
-          >
-            Copy Invite Link
-          </button>
+          {actions.map((action, index) => (
+            <button
+              key={action.key}
+              onClick={() => {
+                setOpen(false);
+                onAction(action.key);
+              }}
+              className="block w-full px-3 py-2 text-left text-sm hover:opacity-80"
+              disabled={
+                !canCancel &&
+                (action.key === "cancel" || action.key === "send-again")
+              }
+              style={{
+                cursor: canCancel ? "pointer" : "not-allowed",
+                color: canCancel ? undefined : "var(--color-border)",
+                borderBottom:
+                  index < actions.length - 1
+                    ? "1px solid var(--color-border)"
+                    : undefined,
+              }}
+            >
+              {action.label}
+            </button>
+          ))}
         </div>
       )}
     </div>

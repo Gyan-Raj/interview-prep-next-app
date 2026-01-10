@@ -28,9 +28,6 @@ export default function QuestionDrawer() {
 
   const questionText = searchParams.get("text") ?? "";
   const questionRole = searchParams.get("role") ?? "";
-  console.log(questionText,"questionText");
-  console.log(questionRole,"questionRole");
-  
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
