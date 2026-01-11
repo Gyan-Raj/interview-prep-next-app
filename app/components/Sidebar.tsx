@@ -37,10 +37,11 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
 
   return (
     <aside
-      className={`transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}
+      className={`transition-all duration-300 border-r ${
+        collapsed ? "w-16" : "w-64"
+      }`}
       style={{
-        backgroundColor: "var(--color-panel)",
-        borderRight: "1px solid var(--color-border)",
+        borderRight: "0.5px solid var(--color-text)",
       }}
     >
       {/* Collapse toggle */}

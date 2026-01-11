@@ -78,15 +78,17 @@ export default function Navbar() {
   return (
     <header
       className="h-14 w-full border-b"
-      style={{ borderColor: "var(--color-border)" }}
+      style={{
+        borderBottom: "0.5px solid var(--color-text)",
+      }}
     >
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-0">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         <div
           onClick={handleNavigate}
-          className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px relative right-5"
+          className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px relative right-11"
           style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
+            // backgroundColor: "var(--color-panel)",
+            border: "0.5px solid var(--color-text)",
             boxShadow: "0 6px 14px rgba(0,0,0,0.12)",
           }}
           onMouseEnter={(e) => {
