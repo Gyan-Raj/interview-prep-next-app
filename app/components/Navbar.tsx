@@ -82,10 +82,10 @@ export default function Navbar() {
         borderBottom: "0.5px solid var(--color-text)",
       }}
     >
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-full items-center justify-between px-1">
         <div
           onClick={handleNavigate}
-          className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px relative right-11"
+          className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px"
           style={{
             // backgroundColor: "var(--color-panel)",
             border: "0.5px solid var(--color-text)",
@@ -99,7 +99,7 @@ export default function Navbar() {
           }}
         >
           <img src="/logo.png" alt="Interview Ready" className="h-6 w-6" />
-          <span className="text-lg font-semibold select-none">
+          <span className="text-sm font-semibold select-none">
             Interview Ready
           </span>
         </div>

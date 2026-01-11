@@ -27,6 +27,9 @@
 
   --status-rejected-bg: #fee2e2;
   --status-rejected-text: #991b1b;
+
+  /* hover effect */
+  --color-hover: rgba(56, 189, 248, 0.12);
 }
 
 /* Dark theme */
@@ -55,6 +58,9 @@
 
   --status-rejected-bg: #7f1d1d;
   --status-rejected-text: #fecaca;
+
+  /* hover effect */
+  --color-hover: rgba(56, 189, 248, 0.18);
 }
 
 /* Base element wiring */
