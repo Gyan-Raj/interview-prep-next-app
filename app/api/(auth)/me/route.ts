@@ -4,7 +4,6 @@ import { prisma } from "@/app/db/prisma";
 
 export async function GET() {
   const authUser = await getAuthUser();
-
   if (!authUser) {
     return NextResponse.json(null, { status: 401 });
   }
@@ -12,9 +11,7 @@ export async function GET() {
   const user = await prisma.user.findUnique({
     where: { id: authUser.id },
     include: {
-      roles: {
-        include: { role: true },
-      },
+      roles: { include: { role: true } },
       activeRole: true,
     },
   });
@@ -27,8 +24,7 @@ export async function GET() {
     id: user.id,
     name: user.name,
     email: user.email,
-    phone: user.phone,
     activeRole: user.activeRole,
-    roles: user.roles.map((ur) => ur.role),
+    roles: user.roles.map((r) => r.role),
   });
 }

@@ -6,8 +6,8 @@ import { cookies, headers } from "next/headers";
 const SESSION_TTL_DAYS = 90;
 
 export async function createSession(userId: string) {
-  const rawRefreshToken = crypto.randomBytes(48).toString("hex");
-  const hashedRefreshToken = await bcrypt.hash(rawRefreshToken, 10);
+  const rawToken = crypto.randomBytes(48).toString("hex");
+  const hashedToken = await bcrypt.hash(rawToken, 10);
 
   const expiresAt = new Date(
     Date.now() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000
@@ -19,29 +19,21 @@ export async function createSession(userId: string) {
     (await headers()).get("x-real-ip") ||
     undefined;
 
-  const session = await prisma.session.create({
+  await prisma.session.create({
     data: {
       userId,
-      refreshToken: hashedRefreshToken,
+      refreshToken: hashedToken,
       userAgent,
       ipAddress,
       expiresAt,
     },
   });
 
-  (
-    await // Set cookie with RAW token
-    cookies()
-  ).set("refreshToken", rawRefreshToken, {
+  (await cookies()).set("refreshToken", rawToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     expires: expiresAt,
     path: "/",
   });
-
-  return {
-    sessionId: session.id,
-    expiresAt,
-  };
 }

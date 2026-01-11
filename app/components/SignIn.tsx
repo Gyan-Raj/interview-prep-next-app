@@ -1,11 +1,11 @@
 "use client";
 
-import { login } from "@/app/actions";
+import { login, me } from "@/app/actions";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import * as yup from "yup";
 import { roleDashboardRoute } from "../utils/utils";
-import { Role } from "../types";
+import { RoleOps } from "@/app/types";
 
 const initialValues = {
   email: "",
@@ -19,21 +19,22 @@ const validationSchema = yup.object({
 
 export default function SignIn() {
   const router = useRouter();
+
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const res = await login(values);
+        const loginRes = await login(values);
+        if (loginRes.status !== 200) return;
 
-        if (res?.status === 200) {
-          const activeRole: Role = res.data.data.activeRole;
+        const meRes = await me();
+        if (meRes.status !== 200) return;
 
-          const dashboard = roleDashboardRoute[activeRole.name];
-          router.replace(dashboard);
-        }
-      } catch (error) {
-        console.error("Error logging in (SignIn):", error);
+        const roleName = meRes.data.activeRole.name as RoleOps;
+        router.replace(roleDashboardRoute[roleName]);
+      } catch (err) {
+        console.error("Sign in failed:", err);
       }
     },
   });
@@ -52,7 +53,6 @@ export default function SignIn() {
       <h1 className="text-xl font-semibold">Sign in</h1>
       <p className="mt-1 text-sm opacity-80">Welcome back to Interview Ready</p>
 
-      {/* ✅ IMPORTANT: formik.handleSubmit */}
       <form className="mt-6 space-y-4" onSubmit={formik.handleSubmit}>
         <div>
           <label className="text-sm font-medium">Email</label>

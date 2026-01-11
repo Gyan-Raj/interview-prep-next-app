@@ -1,7 +1,8 @@
+// proxy.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-const secretKey = process.env.SECRET_KEY!;
+const SECRET_KEY = process.env.SECRET_KEY!;
 
 const ROLE_ROUTE_MAP = {
   ADMIN: "/admin",
@@ -9,71 +10,44 @@ const ROLE_ROUTE_MAP = {
   RESOURCE: "/resource",
 } as const;
 
-type RoleOps = keyof typeof ROLE_ROUTE_MAP;
-
 type JwtPayload = {
-  id: string;
+  activeRole?: {
+    name: keyof typeof ROLE_ROUTE_MAP;
+  };
 };
 
-export async function proxy(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  /**
-   * 1. Allow public routes
-   */
+  // Public paths
   if (
     pathname === "/" ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/unauthorized") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico")
+    pathname === "/favicon.ico" ||
+    pathname === "/unauthorized"
   ) {
     return NextResponse.next();
   }
 
-  /**
-   * 2. Read token
-   */
-  const accessToken = req.cookies.get("accessToken")?.value;
-
-  if (!accessToken) {
+  const token = req.cookies.get("accessToken")?.value;
+  if (!token) {
     return redirectToLogin(req);
   }
 
-  /**
-   * 3. Verify token
-   */
   let payload: JwtPayload;
   try {
-    payload = jwt.verify(accessToken, secretKey) as JwtPayload;
+    payload = jwt.verify(token, SECRET_KEY) as JwtPayload;
   } catch {
     return redirectToLogin(req);
   }
 
-  /**
-   * 4. Fetch live auth context
-   */
-  const authContextRes = await fetch(new URL("/api/context", req.url), {
-    headers: { cookie: req.headers.get("cookie") || "" },
-  });
-
-  if (!authContextRes.ok) {
+  const roleName = payload.activeRole?.name;
+  if (!roleName) {
     return redirectToLogin(req);
   }
 
-  const { activeRole } = await authContextRes.json();
-
-  if (!activeRole) {
-    return redirectToLogin(req);
-  }
-
-  const allowedBasePath = ROLE_ROUTE_MAP[activeRole.name as RoleOps];
-
-  /**
-   * 5. Role guard
-   */
-  if (!pathname.startsWith(allowedBasePath)) {
+  const allowedPath = ROLE_ROUTE_MAP[roleName];
+  if (!pathname.startsWith(allowedPath)) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
@@ -81,7 +55,7 @@ export async function proxy(req: NextRequest) {
 }
 
 function redirectToLogin(req: NextRequest) {
-  return NextResponse.redirect(new URL("/login", req.url));
+  return NextResponse.redirect(new URL("/", req.url));
 }
 
 export const config = {
