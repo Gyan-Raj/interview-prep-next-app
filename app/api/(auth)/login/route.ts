@@ -1,3 +1,4 @@
+// app/api/(auth)/login/route.ts
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -39,23 +40,19 @@ export async function POST(req: Request) {
     );
   }
 
+  // Ensure active role exists (DB concern only)
   if (!user.activeRole) {
     const role = user.roles[0].role;
     await prisma.user.update({
       where: { id: user.id },
       data: { activeRoleId: role.id },
     });
-    user.activeRole = role;
   }
 
-  const accessToken = jwt.sign(
-    {
-      id: user.id,
-      activeRole: user.activeRole,
-    },
-    SECRET_KEY,
-    { expiresIn: "15m" }
-  );
+  // ✅ IDENTITY-ONLY TOKEN
+  const accessToken = jwt.sign({ sub: user.id }, SECRET_KEY, {
+    expiresIn: "15m",
+  });
 
   await createSession(user.id);
 

@@ -1,23 +1,13 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { AuthUser, RoleOps } from "../types";
-import { prisma } from "../db/prisma";
+import { prisma } from "@/app/db/prisma";
+import { RoleOps, AuthUser } from "@/app/types";
 
 const secretKey = process.env.SECRET_KEY!;
-type JwtPayload = {
-  id: string;
-};
 
-function toRoleOps(name: string): RoleOps {
-  switch (name) {
-    case "ADMIN":
-    case "RESOURCE MANAGER":
-    case "RESOURCE":
-      return name;
-    default:
-      throw new Error(`Invalid role name from DB: ${name}`);
-  }
-}
+type JwtPayload = {
+  sub: string;
+};
 
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
@@ -25,34 +15,32 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
   if (!token) return null;
 
-  let payload: { id: string };
+  let payload: JwtPayload;
   try {
-    payload = jwt.verify(token, secretKey) as { id: string };
+    payload = jwt.verify(token, secretKey) as JwtPayload;
   } catch {
     return null;
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: payload.id },
+    where: { id: payload.sub }, // ✅ FIXED
     include: {
       roles: { include: { role: true } },
       activeRole: true,
     },
   });
 
-  if (!user) return null;
+  if (!user || !user.activeRole) return null;
 
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     phone: user.phone,
-    activeRole: user.activeRole
-      ? {
-          id: user.activeRole.id,
-          name: user.activeRole.name as RoleOps,
-        }
-      : null,
+    activeRole: {
+      id: user.activeRole.id,
+      name: user.activeRole.name as RoleOps,
+    },
     roles: user.roles.map((ur) => ({
       id: ur.role.id,
       name: ur.role.name as RoleOps,

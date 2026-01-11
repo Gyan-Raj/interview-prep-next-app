@@ -4,58 +4,32 @@ import jwt from "jsonwebtoken";
 
 const SECRET_KEY = process.env.SECRET_KEY!;
 
-const ROLE_ROUTE_MAP = {
-  ADMIN: "/admin",
-  "RESOURCE MANAGER": "/resource-manager",
-  RESOURCE: "/resource",
-} as const;
-
-type JwtPayload = {
-  activeRole?: {
-    name: keyof typeof ROLE_ROUTE_MAP;
-  };
-};
-
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  // Public paths
+
+  // 1️⃣ Allow public routes
   if (
     pathname === "/" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/unauthorized"
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
+  // 2️⃣ Require access token
   const token = req.cookies.get("accessToken")?.value;
   if (!token) {
-    return redirectToLogin(req);
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
-  let payload: JwtPayload;
+  // 3️⃣ Verify token (identity only)
   try {
-    payload = jwt.verify(token, SECRET_KEY) as JwtPayload;
+    jwt.verify(token, SECRET_KEY);
+    return NextResponse.next();
   } catch {
-    return redirectToLogin(req);
+    return NextResponse.redirect(new URL("/", req.url));
   }
-
-  const roleName = payload.activeRole?.name;
-  if (!roleName) {
-    return redirectToLogin(req);
-  }
-
-  const allowedPath = ROLE_ROUTE_MAP[roleName];
-  if (!pathname.startsWith(allowedPath)) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
-  }
-
-  return NextResponse.next();
-}
-
-function redirectToLogin(req: NextRequest) {
-  return NextResponse.redirect(new URL("/", req.url));
 }
 
 export const config = {

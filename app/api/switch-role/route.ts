@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/app/db/prisma";
 import { getAuthUser } from "@/app/lib/auth";
-import { createSession } from "@/app/lib/session";
 
-const secretKey = process.env.SECRET_KEY!;
+const SECRET_KEY = process.env.SECRET_KEY!;
 
 export async function POST(req: Request) {
   const authUser = await getAuthUser();
@@ -47,47 +46,12 @@ export async function POST(req: Request) {
     data: { activeRoleId: role.id },
   });
 
-  // 4️⃣ Re-fetch fresh user state (IMPORTANT)
-  const updatedUser = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    include: {
-      roles: { include: { role: true } },
-      activeRole: true,
-    },
-  });
-
-  if (!updatedUser) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
-  }
-
-  // 5️⃣ Build payload from DB (NOT JWT)
-  const payload = {
-    id: updatedUser.id,
-    email: updatedUser.email,
-    phone: updatedUser.phone,
-    name: updatedUser.name,
-    activeRole: updatedUser.activeRole,
-    roles: updatedUser.roles.map((ur) => ur.role),
-  };
-
-  const accessToken = jwt.sign(payload, secretKey, {
+  // 4️⃣ Issue a NEW ACCESS TOKEN (identity only)
+  const accessToken = jwt.sign({ sub: authUser.id }, SECRET_KEY, {
     expiresIn: "15m",
   });
 
-  // const refreshToken = jwt.sign(payload, secretKey, {
-  //   expiresIn: "90d",
-  // });
-
-  // await createSession(updatedUser.id);
-
-  // 6️⃣ Return updated user for Redux
-  const response = NextResponse.json(
-    {
-      message: "Role switched successfully",
-      data: payload,
-    },
-    { status: 200 }
-  );
+  const response = NextResponse.json({ success: true }, { status: 200 });
 
   response.cookies.set("accessToken", accessToken, {
     httpOnly: true,
@@ -96,14 +60,6 @@ export async function POST(req: Request) {
     path: "/",
     maxAge: 15 * 60,
   });
-
-  // response.cookies.set("refreshToken", refreshToken, {
-  //   httpOnly: true,
-  //   secure: process.env.NODE_ENV === "production",
-  //   sameSite: "strict",
-  //   path: "/",
-  //   maxAge: 90 * 24 * 60 * 60,
-  // });
 
   return response;
 }

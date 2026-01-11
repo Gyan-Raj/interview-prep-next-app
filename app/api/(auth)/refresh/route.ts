@@ -1,3 +1,4 @@
+// app/api/(auth)/refresh/route.ts
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -30,24 +31,16 @@ export async function POST() {
 
   const user = await prisma.user.findUnique({
     where: { id: matchedSession.userId },
-    include: {
-      roles: { include: { role: true } },
-      activeRole: true,
-    },
   });
 
-  if (!user || !user.activeRole) {
+  if (!user) {
     return NextResponse.json(null, { status: 401 });
   }
 
-  const accessToken = jwt.sign(
-    {
-      id: user.id,
-      activeRole: user.activeRole,
-    },
-    SECRET_KEY,
-    { expiresIn: "15m" }
-  );
+  // ✅ IDENTITY-ONLY TOKEN
+  const accessToken = jwt.sign({ sub: user.id }, SECRET_KEY, {
+    expiresIn: "15m",
+  });
 
   const response = NextResponse.json({ success: true });
   response.cookies.set("accessToken", accessToken, {

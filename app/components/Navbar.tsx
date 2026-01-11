@@ -6,14 +6,8 @@ import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { clearUser, setUser } from "@/app/store/slices/authSlice";
 import { toSentenceCase, roleDashboardRoute } from "@/app/utils/utils";
 import { useState, useRef, useEffect } from "react";
-import { AuthUser } from "@/app/types";
-import { logout, switchRole } from "@/app/actions";
-
-type SwitchRoleResponse = {
-  data: {
-    data: AuthUser;
-  };
-};
+import { RoleOps } from "@/app/types";
+import { logout, me, switchRole } from "@/app/actions";
 
 export default function Navbar() {
   const router = useRouter();
@@ -47,18 +41,19 @@ export default function Navbar() {
     try {
       const res = await switchRole({ roleId });
 
-      if (res.status === 200) {
-        const { data: resData }: SwitchRoleResponse = res;
-        const { data } = resData;
-        if (!data.activeRole) return;
+      if (res.status !== 200) return;
 
-        dispatch(setUser(data));
-        const targetRoute = roleDashboardRoute[data.activeRole?.name];
+      // 🔑 Single source of truth
+      const meRes = await me();
+      if (meRes.status !== 200) return;
 
-        router.replace(targetRoute);
-      }
+      const user = meRes.data;
+      dispatch(setUser(user));
+
+      const roleName = user.activeRole.name as RoleOps;
+      router.replace(roleDashboardRoute[roleName]);
     } catch (error) {
-      console.error("Error switching the role (api/switch-role", error);
+      console.error("Error switching role", error);
     }
   }
 
