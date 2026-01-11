@@ -41,7 +41,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
       <div className="flex justify-end p-2 relative">
         <button
           onClick={onToggle}
-          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-button-primary-bg) cursor-pointer`}
+          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-hover) cursor-pointer`}
           style={{
             color: "var(--color-text)",
             borderRadius: "100%",
@@ -130,9 +130,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
               href={item.href}
               className={`flex items-center gap-2 px-4 py-2 text-sm transition
                 ${
-                  isActive
-                    ? "bg-(--color-border)"
-                    : "hover:bg-(--color-hover)"
+                  isActive ? "bg-(--color-border)" : "hover:bg-(--color-hover)"
                 }`}
               style={{ color: "var(--color-text)" }}
             >
