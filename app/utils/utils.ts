@@ -104,7 +104,7 @@ export function getConfirmationTitle(
       readableAction = "Send reminder for the";
       break;
     default:
-      toSentenceCase(action);
+      readableAction = toSentenceCase(action);
       break;
   }
 
