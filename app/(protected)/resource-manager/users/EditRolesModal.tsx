@@ -79,7 +79,7 @@ export default function EditRolesModal({
               return (
                 <label
                   key={role.id}
-                  className="flex items-center gap-3 cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer max-w-fit"
                 >
                   <input
                     type="checkbox"

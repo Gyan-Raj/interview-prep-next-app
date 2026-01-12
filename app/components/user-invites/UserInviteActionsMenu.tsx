@@ -43,7 +43,7 @@ export default function UserInviteActionsMenu({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="px-2 py-1 text-lg leading-none inline-flex items-center justify-center rounded-md border border-gray-300 cursor-pointer hover:bg-gray-100"
+        className="px-2 py-1 text-lg leading-none inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100"
       >
         ⋮
       </button>

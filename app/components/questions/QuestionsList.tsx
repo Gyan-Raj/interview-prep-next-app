@@ -8,13 +8,17 @@ export default function QuestionsList({
   renderActions,
   onItemClick,
   emptyMessage = "No questions found.",
+  isLoading = true,
 }: {
   questions: QuestionRow[];
   renderActions: (submission: QuestionRow) => React.ReactNode;
   onItemClick?: (submission: QuestionRow) => void;
   emptyMessage?: string;
-}) {
-  if (questions.length === 0) {
+  isLoading?: boolean;
+  }) {
+  console.log(isLoading,"isLoading");
+  
+  if (!isLoading && questions.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
   }
 
@@ -37,6 +41,7 @@ export default function QuestionsList({
           .join(" · ")
       }
       onItemClick={(question) => onItemClick?.(question.data)}
+      loading={isLoading}
     />
   );
 }

@@ -95,7 +95,7 @@ export default function AddUserModal({
         <>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded border text-sm"
+            className="px-4 py-2 rounded border text-sm btn-secondary"
           >
             Cancel
           </button>
@@ -170,7 +170,7 @@ export default function AddUserModal({
               roles.map((role) => (
                 <label
                   key={role.id}
-                  className="flex items-center gap-2 text-sm cursor-pointer"
+                  className="flex items-center gap-2 text-sm cursor-pointer max-w-fit"
                 >
                   <input
                     type="checkbox"

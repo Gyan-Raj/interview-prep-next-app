@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Filter } from "lucide-react";
 
-import { useDebounce, useOutsideClick } from "@/app/hooks/hooks";
-import { toSentenceCase } from "@/app/utils/utils";
+import { useDebounce } from "@/app/hooks/hooks";
 import {
   getAllQuestions,
   getAllCompanies,
   getAllRoles,
   getAllRounds,
 } from "@/app/actions";
-import { QuestionRow } from "@/app/types";
+import { FilterConfig, QuestionRow } from "@/app/types";
 import QuestionsList from "@/app/components/questions/QuestionsList";
 import { useRouter } from "next/navigation";
+import FiltersMenu from "@/app/components/filters/FiltersMenu";
 
 type Option = {
   id: string;
@@ -21,13 +20,9 @@ type Option = {
 };
 
 function Questions() {
-  const rolesDropdownRef = useRef<HTMLDivElement>(null);
-  const companiesDropdownRef = useRef<HTMLDivElement>(null);
-  const roundsDropdownRef = useRef<HTMLDivElement>(null);
-
   const [query, setQuery] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [allRoles, setAllRoles] = useState<Option[]>([]);
   const [allCompanies, setAllCompanies] = useState<Option[]>([]);
@@ -36,10 +31,6 @@ function Questions() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [selectedRounds, setSelectedRounds] = useState<string[]>([]);
-
-  const [rolesOpen, setRolesOpen] = useState(false);
-  const [companiesOpen, setCompaniesOpen] = useState(false);
-  const [roundsOpen, setRoundsOpen] = useState(false);
 
   const debouncedQuery = useDebounce(query, 400);
   const debouncedRoles = useDebounce(selectedRoles, 400);
@@ -94,19 +85,32 @@ function Questions() {
 
   /* ---------------- Fetch questions ---------------- */
 
+  const isReady =
+    selectedRoles.length > 0 &&
+    selectedCompanies.length > 0 &&
+    selectedRounds.length > 0;
+
   useEffect(() => {
-    if (
-      selectedRoles?.length &&
-      selectedCompanies?.length &&
-      selectedRounds?.length
-    ) {
-      fetchQuestions();
-    }
-  }, [debouncedQuery, debouncedRoles, debouncedCompanies, debouncedRounds]);
+    if (!isReady) return;
+    fetchQuestions();
+  }, [
+    debouncedQuery,
+    debouncedRoles,
+    debouncedCompanies,
+    debouncedRounds,
+    isReady,
+  ]);
 
   const questionsCache = useRef<Map<string, QuestionRow[]>>(new Map());
 
   async function fetchQuestions() {
+    console.log("Fetching questions with:", {
+      debouncedQuery,
+      debouncedRoles,
+      debouncedCompanies,
+      debouncedRounds,
+    });
+
     const cacheKey = JSON.stringify({
       q: debouncedQuery,
       r: debouncedRoles,
@@ -118,8 +122,7 @@ function Questions() {
       setQuestions(questionsCache.current.get(cacheKey)!);
       return;
     }
-
-    setLoading(true);
+    setIsLoading(true);
     try {
       const res = await getAllQuestions({
         searchText: debouncedQuery,
@@ -148,7 +151,7 @@ function Questions() {
         setQuestions(normalized);
       }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -190,35 +193,37 @@ function Questions() {
     }
   }
 
-  useOutsideClick(rolesDropdownRef, () => setRolesOpen(false));
-  useOutsideClick(companiesDropdownRef, () => setCompaniesOpen(false));
-  useOutsideClick(roundsDropdownRef, () => setRoundsOpen(false));
-
   /* ---------------- Labels ---------------- */
 
-  const rolesLabel = isAllRolesSelected
-    ? "All Roles"
-    : selectedRoles
-        ?.map((id) => allRoles.find((r) => r.id === id)?.name)
-        .filter(Boolean)
-        .map((v) => toSentenceCase(v!))
-        .join(", ");
-
-  const companiesLabel = isAllCompaniesSelected
-    ? "All Companies"
-    : selectedCompanies
-        ?.map((id) => allCompanies.find((c) => c.id === id)?.name)
-        .filter(Boolean)
-        .map((v) => toSentenceCase(v!))
-        .join(", ");
-
-  const roundsLabel = isAllCompaniesSelected
-    ? "All Rounds"
-    : selectedRounds
-        ?.map((id) => allRounds.find((c) => c.id === id)?.name)
-        .filter(Boolean)
-        .map((v) => toSentenceCase(v!))
-        .join(", ");
+  const filtersConfig: FilterConfig[] = [
+    {
+      key: "roles",
+      label: "Roles",
+      options: allRoles,
+      selected: selectedRoles,
+      isAllSelected: isAllRolesSelected,
+      onToggle: toggleRole,
+      onSelectAll: toggleAllRoles,
+    },
+    {
+      key: "companies",
+      label: "Companies",
+      options: allCompanies,
+      selected: selectedCompanies,
+      isAllSelected: isAllCompaniesSelected,
+      onToggle: toggleCompany,
+      onSelectAll: toggleAllCompanies,
+    },
+    {
+      key: "rounds",
+      label: "Rounds",
+      options: allRounds,
+      selected: selectedRounds,
+      isAllSelected: isAllRoundsSelected,
+      onToggle: toggleRound,
+      onSelectAll: toggleAllRounds,
+    },
+  ];
 
   /* ---------------- Render ---------------- */
 
@@ -238,212 +243,25 @@ function Questions() {
           }}
         />
 
-        {/* Roles Filter */}
-        <div className="flex items-center gap-3 flex-nowrap">
-          <div ref={rolesDropdownRef} className="relative">
-            <button
-              onClick={() => setRolesOpen((v) => !v)}
-              className="px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1"
-              style={{
-                backgroundColor: "var(--color-panel)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-                color: "var(--color-text)",
-              }}
-            >
-              <Filter size={14} style={{ opacity: 0.7 }} />
-              {rolesLabel || "Select roles"}
-            </button>
-
-            {rolesOpen && (
-              <div
-                className="absolute mt-2 w-56 p-3 space-y-2 z-20 right-0"
-                style={{
-                  backgroundColor: "var(--color-panel)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                {/* All */}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={isAllRolesSelected}
-                    disabled={isAllRolesSelected}
-                    onChange={toggleAllRoles}
-                  />
-                  <span>All Roles</span>
-                </label>
-
-                <hr style={{ borderColor: "var(--color-border)" }} />
-
-                {allRoles?.map((role) => (
-                  <label
-                    key={role.id}
-                    className="flex items-center gap-2 text-sm"
-                    style={{ opacity: isAllRolesSelected ? 0.5 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRoles.includes(role.id)}
-                      disabled={
-                        selectedRoles.length === 1 &&
-                        selectedRoles[0] === role.id
-                      }
-                      onChange={() => toggleRole(role.id)}
-                    />
-                    {role.name}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Companies Filter */}
-        <div className="flex items-center gap-3 flex-nowrap">
-          <div ref={companiesDropdownRef} className="relative">
-            <button
-              onClick={() => setCompaniesOpen((v) => !v)}
-              className="px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1"
-              style={{
-                backgroundColor: "var(--color-panel)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-                color: "var(--color-text)",
-              }}
-            >
-              <Filter size={14} style={{ opacity: 0.7 }} />
-              {companiesLabel || "Select companies"}
-            </button>
-
-            {companiesOpen && (
-              <div
-                className="absolute right-0 mt-2 w-56 p-3 space-y-2 z-20"
-                style={{
-                  backgroundColor: "var(--color-panel)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                {/* All */}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={isAllCompaniesSelected}
-                    disabled={isAllCompaniesSelected}
-                    onChange={toggleAllCompanies}
-                  />
-                  <span>All Companies</span>
-                </label>
-
-                <hr style={{ borderColor: "var(--color-border)" }} />
-
-                {allCompanies?.map((company) => (
-                  <label
-                    key={company.id}
-                    className="flex items-center gap-2 text-sm"
-                    style={{ opacity: isAllCompaniesSelected ? 0.5 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCompanies.includes(company.id)}
-                      disabled={
-                        selectedCompanies.length === 1 &&
-                        selectedCompanies[0] === company.id
-                      }
-                      onChange={() => toggleCompany(company.id)}
-                    />
-                    {company.name}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Rounds Filter */}
-        <div className="flex items-center gap-3 flex-nowrap">
-          <div ref={roundsDropdownRef} className="relative">
-            <button
-              onClick={() => setRoundsOpen((v) => !v)}
-              className="px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1"
-              style={{
-                backgroundColor: "var(--color-panel)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-                color: "var(--color-text)",
-              }}
-            >
-              <Filter size={14} style={{ opacity: 0.7 }} />
-              {roundsLabel || "Select rounds"}
-            </button>
-
-            {roundsOpen && (
-              <div
-                className="absolute right-0 mt-2 w-56 p-3 space-y-2 z-20"
-                style={{
-                  backgroundColor: "var(--color-panel)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                {/* All */}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={isAllRoundsSelected}
-                    disabled={isAllRoundsSelected}
-                    onChange={toggleAllRounds}
-                  />
-                  <span>All Rounds</span>
-                </label>
-
-                <hr style={{ borderColor: "var(--color-border)" }} />
-
-                {allRounds?.map((round) => (
-                  <label
-                    key={round.id}
-                    className="flex items-center gap-2 text-sm"
-                    style={{ opacity: isAllRoundsSelected ? 0.5 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRounds.includes(round.id)}
-                      disabled={
-                        selectedRounds.length === 1 &&
-                        selectedRounds[0] === round.id
-                      }
-                      onChange={() => toggleRound(round.id)}
-                    />
-                    {round.name}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Filters */}
+        <FiltersMenu filters={filtersConfig} />
       </div>
 
       {/* List */}
-      {!loading && (
-        <QuestionsList
-          questions={questions}
-          onItemClick={(question) => {
-            const params = new URLSearchParams({
-              role: question.interview.role ?? "",
-              text: question.text,
-            });
-            return router.push(
-              `/resource/questions/${question.id}?${params.toString()}`
-            );
-          }}
-          renderActions={() => ""}
-        />
-      )}
+      <QuestionsList
+        questions={questions}
+        onItemClick={(question) => {
+          const params = new URLSearchParams({
+            role: question.interview.role ?? "",
+            text: question.text,
+          });
+          return router.push(
+            `/resource/questions/${question.id}?${params.toString()}`
+          );
+        }}
+        renderActions={() => ""}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

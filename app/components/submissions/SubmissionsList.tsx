@@ -18,11 +18,13 @@ export default function SubmissionsList({
   renderActions,
   onItemClick,
   emptyMessage = "No submissions found.",
+  isLoading = false,
 }: {
   submissions: SubmissionRow[];
   renderActions: (submission: SubmissionRow) => React.ReactNode;
   onItemClick?: (submission: SubmissionRow) => void;
   emptyMessage?: string;
+  isLoading?: boolean;
 }) {
   if (submissions.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
@@ -54,6 +56,7 @@ export default function SubmissionsList({
       }
       getActions={(submission) => renderActions(submission.data)}
       onItemClick={(submission) => onItemClick?.(submission.data)}
+      loading={isLoading}
     />
   );
 }

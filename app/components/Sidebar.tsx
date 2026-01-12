@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { SIDEBAR_MENU } from "@/app/components/SidebarMenu";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, LogOut } from "lucide-react";
 import { useState } from "react";
 import { SidebarMenuItem } from "@/app/types";
+import { logout } from "../actions";
+import { useAppDispatch } from "../store/hooks";
+import { clearUser } from "../store/slices/authSlice";
 
 type Role = "Admin" | "Resource Manager" | "Resource";
 
@@ -25,14 +28,29 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
   const pathname = usePathname();
   const menu = SIDEBAR_MENU[role];
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const toggleItem = (key: string) => {
     setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  async function handleLogout() {
+    try {
+      const res = await logout();
+      if (res.status === 200) {
+        dispatch(clearUser());
+        router.replace("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error logging out (api/logout)", error);
+    }
+  }
+
   return (
     <aside
-      className={`transition-all duration-300 ${
+      className={`flex flex-col transition-all duration-300 ${
         collapsed ? "w-12" : "w-42"
       } border-r`}
       style={{ borderRight: "0.5px solid var(--color-text)" }}
@@ -41,11 +59,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
       <div className="flex justify-end p-2 relative">
         <button
           onClick={onToggle}
-          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-hover) cursor-pointer`}
-          style={{
-            color: "var(--color-text)",
-            borderRadius: "100%",
-          }}
+          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-accent-strong) rounded-full`}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
@@ -66,12 +80,14 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
               <div key={item.label}>
                 <div
                   onClick={() => toggleItem(item.label)}
-                  className={`flex items-center gap-3 px-4 py-2 text-sm cursor-pointer transition
-                    ${
-                      isChildActive
-                        ? "bg-(--color-border)"
-                        : "hover:bg-(--color-hover)"
-                    }`}
+                  className={`
+  flex items-center gap-3 px-4 py-2 text-sm transition
+  ${
+    isChildActive
+      ? "bg-[var(--color-selected-bg)] font-medium"
+      : "hover:bg-[var(--color-hover)]"
+  }
+`}
                   style={{ color: "var(--color-text)" }}
                 >
                   <Icon size={18} />
@@ -102,12 +118,14 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className={`flex items-center gap-2 px-4 py-2 text-sm transition
-                            ${
-                              childActive
-                                ? "bg-(--color-border)"
-                                : "hover:bg-(--color-hover)"
-                            }`}
+                          className={`
+  flex items-center gap-2 px-4 py-2 text-sm transition
+  ${
+    childActive
+      ? "bg-[var(--color-selected-bg)]"
+      : "hover:bg-[var(--color-hover)]"
+  }
+`}
                           style={{ color: "var(--color-text)" }}
                         >
                           <ChildIcon size={16} />
@@ -128,10 +146,15 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2 px-4 py-2 text-sm transition
-                ${
-                  isActive ? "bg-(--color-border)" : "hover:bg-(--color-hover)"
-                }`}
+              className={`
+  flex items-center text-sm transition
+  ${collapsed ? "justify-center px-0 py-2" : "gap-2 px-4 py-2"}
+  ${
+    isActive
+      ? "bg-[var(--color-selected-bg)] font-medium"
+      : "hover:bg-[var(--color-hover)]"
+  }
+`}
               style={{ color: "var(--color-text)" }}
             >
               <Icon size={18} />
@@ -140,6 +163,17 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
           );
         })}
       </nav>
+      <div className="mt-auto px-3 pb-4">
+        <button
+          className={`w-full flex items-center rounded-lg py-2 text-sm font-medium transition-colors btn-logout ${
+            collapsed ? "justify-center px-0" : "gap-2 px-3"
+          }`}
+          onClick={handleLogout}
+        >
+          <LogOut size={collapsed ? 12 : 18} />
+          {!collapsed && <span>Logout</span>}
+        </button>
+      </div>
     </aside>
   );
 }

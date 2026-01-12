@@ -1,9 +1,11 @@
-// components/List.tsx
-
-import ListCard, { ListCardItem } from "./ListCard";
+import ListCard, { ListCardItem } from "@/app/components/list/ListCard";
+import { ListCardSkeleton } from "@/app/components/list/ListCardSkeleton";
 
 export default function List<T extends ListCardItem>({
   items,
+  loading = false,
+  skeletonCount = 5,
+
   getTitle,
   getSubtitle,
   getMetaData,
@@ -12,6 +14,8 @@ export default function List<T extends ListCardItem>({
   onItemClick,
 }: {
   items: T[];
+  loading?: boolean;
+  skeletonCount?: number;
 
   getTitle: (item: T) => React.ReactNode;
   getSubtitle?: (item: T) => React.ReactNode;
@@ -21,7 +25,19 @@ export default function List<T extends ListCardItem>({
   getActions?: (item: T) => React.ReactNode;
 
   onItemClick?: (item: T) => void;
-}) {
+  }) {
+  // console.log(loading,"loading");
+  
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <ListCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item) => (

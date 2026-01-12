@@ -22,12 +22,14 @@ export function useDebounce<T>(value: T, delay = 400): T {
 
 export function useOutsideClick(
   ref: React.RefObject<HTMLElement | null>,
+  enabled: boolean,
   onClose: () => void
 ) {
   useEffect(() => {
+    if (!enabled) return;
+
     function handler(e: MouseEvent) {
       if (!ref.current) return;
-
       if (!ref.current.contains(e.target as Node)) {
         onClose();
       }
@@ -35,7 +37,7 @@ export function useOutsideClick(
 
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [ref, onClose]);
+  }, [ref, enabled, onClose]);
 }
 
 export function useAuthBootstrap() {

@@ -195,3 +195,18 @@ export type Message = {
   role: "system" | "user" | "assistant";
   content: string;
 };
+
+export type FilterOption = {
+  id: string;
+  name: string;
+};
+
+export type FilterConfig = {
+  key: string;
+  label: string;
+  options: FilterOption[];
+  selected: string[];
+  isAllSelected: boolean;
+  onToggle: (id: string) => void;
+  onSelectAll: () => void;
+};

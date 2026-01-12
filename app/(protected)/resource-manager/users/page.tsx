@@ -8,16 +8,16 @@ import {
 } from "@/app/actions";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
-import { Role, UserRow } from "@/app/types";
-import { useEffect, useRef, useState } from "react";
+import { FilterConfig, Role, UserRow } from "@/app/types";
+import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import EditRolesModal from "./EditRolesModal";
 import { canRMDeleteUser, toSentenceCase } from "@/app/utils/utils";
-import { Filter } from "lucide-react";
 import AddUserModal from "@/app/(protected)/resource-manager/users/AddUserModal";
 import UsersList from "@/app/components/users/UsersList";
 import UserActionsMenu from "@/app/components/users/UserActionsMenu";
 import ConfirmationDialog from "@/app/components/ConfirmationDialog";
+import FiltersMenu from "@/app/components/filters/FiltersMenu";
 
 type RoleOption = {
   id: string;
@@ -31,7 +31,6 @@ export default function ResourceManagerUsers() {
 
   const [query, setQuery] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
-  const [rolesOpen, setRolesOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const [showEditRoles, setShowEditRoles] = useState(false);
@@ -44,6 +43,11 @@ export default function ResourceManagerUsers() {
 
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((state) => state.auth.user);
+
+  const roleOptions = allRoles.map((r) => ({
+    id: r.id,
+    name: toSentenceCase(r.name),
+  }));
 
   async function fetchUsers(isInitial = false) {
     if (isInitial) {
@@ -123,73 +127,29 @@ export default function ResourceManagerUsers() {
     fetchRoles();
   }, []);
 
-  const isAllSelected =
-    allRoles.length > 0 && selectedRoleIds.length === allRoles.length;
+  const isAllRolesSelected =
+    roleOptions.length > 0 && selectedRoleIds.length === roleOptions.length;
 
-  const filterLabel = isAllSelected ? (
-    <div className="flex items-center gap-0.5">
-      {" "}
-      <Filter size={14} style={{ color: "var(--color-text)", opacity: 0.7 }} />
-      <span>All</span>
-    </div>
-  ) : (
-    <div className="flex items-center gap-0.5">
-      {" "}
-      <Filter size={14} style={{ color: "var(--color-text)", opacity: 0.7 }} />
-      <span>
-        {selectedRoleIds
-          .map((id) => allRoles.find((r) => r.id === id)?.name)
-          .filter(Boolean)
-          .map((el) => toSentenceCase(el ?? ""))
-          .join(", ")}
-      </span>
-    </div>
-  );
+  const filtersConfig: FilterConfig[] = [
+    {
+      key: "roles",
+      label: "Roles",
+      options: roleOptions,
+      selected: selectedRoleIds,
+      isAllSelected: isAllRolesSelected,
+      onToggle: (id) => {
+        setSelectedRoleIds((prev) =>
+          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+      },
+      onSelectAll: () => {
+        if (!isAllRolesSelected) {
+          setSelectedRoleIds(roleOptions.map((r) => r.id));
+        }
+      },
+    },
+  ];
 
-  function toggleAll() {
-    if (isAllSelected) return; // disabled when checked
-
-    setSelectedRoleIds(allRoles.map((r) => r.id));
-  }
-
-  function toggleRole(roleId: string) {
-    setSelectedRoleIds((prev) =>
-      prev.includes(roleId)
-        ? prev.filter((id) => id !== roleId)
-        : [...prev, roleId]
-    );
-  }
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setRolesOpen(false);
-      }
-    }
-
-    if (rolesOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [rolesOpen]);
-
-  {
-    initialLoading ? (
-      <div>Loading users…</div>
-    ) : (
-      <>
-        {/* Toolbar stays mounted */}
-        {/* Users list handles its own loading */}
-      </>
-    );
-  }
   const handleDeleteProfile = async () => {
     try {
       const res = await deleteUser_ResourceManager({
@@ -223,65 +183,9 @@ export default function ResourceManagerUsers() {
           }}
         />
 
-        <div className="flex items-center gap-3 flex-nowrap">
-          <div ref={dropdownRef} className="relative">
-            <button
-              onClick={() => setRolesOpen((v) => !v)}
-              className="px-3 py-2 text-sm whitespace-nowrap"
-              style={{
-                backgroundColor: "var(--color-panel)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-              }}
-            >
-              {filterLabel || "Select roles"}
-            </button>
-            {rolesOpen && (
-              <div
-                className="absolute mt-2 w-56 p-3 space-y-2 z-20 right-0"
-                style={{
-                  backgroundColor: "var(--color-panel)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                {/* All */}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    disabled={isAllSelected}
-                    onChange={toggleAll}
-                  />
+        <div className="flex items-center gap-4">
+          <FiltersMenu filters={filtersConfig} />
 
-                  <span>All</span>
-                </label>
-
-                <hr style={{ borderColor: "var(--color-border)" }} />
-
-                {/* Roles */}
-                {allRoles.map((role) => (
-                  <label
-                    key={role.id}
-                    className="flex items-center gap-2 text-sm"
-                    style={{ opacity: isAllSelected ? 0.5 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRoleIds.includes(role.id)}
-                      disabled={
-                        selectedRoleIds.length === 1 &&
-                        selectedRoleIds[0] === role.id
-                      }
-                      onChange={() => toggleRole(role.id)}
-                    />
-                    {toSentenceCase(role.name)}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
           <button
             onClick={() => setShowAddUser(true)}
             className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"

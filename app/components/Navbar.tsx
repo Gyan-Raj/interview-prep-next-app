@@ -57,19 +57,6 @@ export default function Navbar() {
     }
   }
 
-  async function handleLogout() {
-    try {
-      const res = await logout();
-      if (res.status === 200) {
-        dispatch(clearUser());
-        router.replace("/");
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Error logging out (api/logout)", error);
-    }
-  }
-
   return (
     <header
       className="h-14 w-full border-b"
@@ -82,7 +69,6 @@ export default function Navbar() {
           onClick={handleNavigate}
           className="flex items-center gap-2 cursor-pointer px-4 py-1.5 rounded-xl transition-all duration-150 active:translate-y-px"
           style={{
-            // backgroundColor: "var(--color-panel)",
             border: "0.5px solid var(--color-text)",
             boxShadow: "0 6px 14px rgba(0,0,0,0.12)",
           }}
@@ -101,32 +87,39 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           {user && (
-            <>
-              <div className="relative" ref={roleRef}>
-                <button
-                  onClick={() => {
-                    if (user.roles.length > 1) {
-                      setRoleModalOpen((v) => !v);
-                    }
-                  }}
-                  className={`text-sm opacity-80 ${
-                    user.roles.length > 1 ? "cursor-pointer" : "cursor-default"
-                  }`}
-                >
-                  {user.name} ({toSentenceCase(user.activeRole?.name ?? "")})
-                </button>
+            <div className="relative" ref={roleRef}>
+              <button
+                onClick={() => {
+                  if (user.roles.length > 1) {
+                    setRoleModalOpen((v) => !v);
+                  }
+                }}
+                className={`text-sm opacity-80 ${
+                  user.roles.length > 1 ? "cursor-pointer" : "cursor-default"
+                }`}
+              >
+                {user.name} ({toSentenceCase(user.activeRole?.name ?? "")})
+              </button>
 
-                {roleModalOpen && (
-                  <div
-                    className="absolute right-0 mt-2 w-44 rounded border shadow-md z-50"
-                    style={{
-                      backgroundColor: "var(--color-panel)",
-                      borderColor: "var(--color-border)",
-                    }}
-                  >
-                    {user.roles.map((role) => {
-                      const isActive = role.name === user.activeRole?.name;
-                      return (
+              {roleModalOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-44 rounded border shadow-md z-50"
+                  style={{
+                    backgroundColor: "var(--color-panel)",
+                    borderColor: "var(--color-border)",
+                  }}
+                >
+                  {user.roles.map((role) => {
+                    const isActive = role.name === user.activeRole?.name;
+                    return (
+                      <div
+                        className={`${
+                          isActive
+                            ? "bg-(--color-border)"
+                            : "hover:bg-(--color-hover)"
+                        }`}
+                        key={role.id}
+                      >
                         <button
                           key={role.id}
                           disabled={isActive}
@@ -134,26 +127,25 @@ export default function Navbar() {
                             handleSwitchRole(role.id);
                             setRoleModalOpen(false);
                           }}
-                          className="block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-(--color-border) disabled:opacity-60"
+                          className={`block w-full px-3 py-2 text-left text-sm transition-colors disabled:opacity-60`}
                         >
                           {toSentenceCase(role.name)}
                         </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="rounded border px-3 py-1 text-sm cursor-pointer hover:bg-(--color-border)"
-              >
-                Logout
-              </button>
-            </>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
+          <div
+            className="h-7 w-7 p-1 rounded-full border border-(--color-border) transition-colors bg-(--color-panel) hover:bg-(--color-hover)"
+            style={{ color: "var(--color-text)" }}
+          >
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>

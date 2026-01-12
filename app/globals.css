@@ -2,65 +2,92 @@
 
 /* Default theme: LIGHT */
 :root {
-  --color-bg: #f8fafc;
+  /* Core surfaces */
+  --color-bg: #f7faf8;
   --color-panel: #ffffff;
-  --color-border: #e5e7eb;
+  --color-border: #d1d9d4;
+
+  /* Text */
   --color-text: #0f172a;
-  --color-accent: #38bdf8;
-  --color-danger: #ff0000;
+  --color-text-muted: #475569;
 
+  /* Accent system */
+  --color-accent: #c2e812;
+  --color-accent-strong: #9fbf00;
+  --color-accent-soft: rgba(194, 232, 18, 0.15);
+
+  /* States */
+  --color-success: #91f5ad;
+  --color-success-text: #065f46;
+
+  --color-danger: #ff934f;
+  --color-danger-text: #7c2d12;
+
+  /* Disabled / not allowed */
+  --color-disabled-bg: #e6ebe8;
+  --color-disabled-text: #94a3b8;
+
+  /* Sidebar / selection */
+  --color-selected-bg: rgba(194, 232, 18, 0.22);
+  --color-selected-border: #9fbf00;
+
+  /* Hover */
+  --color-hover: rgba(194, 232, 18, 0.12);
+
+  /* Shape & depth */
   --radius-card: 12px;
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.06);
 
-  --color-button-primary-bg: #e0f2fe;
-  --color-button-primary-text: #075985;
-
-  /* status of submissions */
-  --status-draft-bg: #f1f5f9;
-  --status-draft-text: #334155;
-
-  --status-pending-bg: #e0f2fe;
-  --status-pending-text: #075985;
-
-  --status-approved-bg: #dcfce7;
-  --status-approved-text: #166534;
-
-  --status-rejected-bg: #fee2e2;
-  --status-rejected-text: #991b1b;
-
-  /* hover effect */
-  --color-hover: rgba(56, 189, 248, 0.12);
+  /* Logout */
+  --color-logout-bg: rgba(255, 147, 79, 0.15);
+  --color-logout-text: #7c2d12;
+  --color-logout-border: rgba(255, 147, 79, 0.4);
+  --color-logout-hover: rgba(255, 147, 79, 0.25);
 }
 
 /* Dark theme */
 [data-theme="dark"] {
-  --color-bg: #0f172a;
-  --color-panel: #020617;
-  --color-border: #1e293b;
+  /* Core surfaces */
+  --color-bg: #0b1220;
+  --color-panel: #111827;
+  --color-border: #1f2937;
+
+  /* Text */
   --color-text: #e5e7eb;
-  --color-accent: #38bdf8;
+  --color-text-muted: #9ca3af;
 
+  /* Accent system */
+  --color-accent: #c2e812;
+  --color-accent-strong: #e5ff5a;
+  --color-accent-soft: rgba(194, 232, 18, 0.18);
+
+  /* States */
+  --color-success: #91f5ad;
+  --color-success-text: #bbf7d0;
+
+  --color-danger: #ff934f;
+  --color-danger-text: #fed7aa;
+
+  /* Disabled / not allowed */
+  --color-disabled-bg: #1f2937;
+  --color-disabled-text: #6b7280;
+
+  /* Sidebar / selection */
+  --color-selected-bg: rgba(194, 232, 18, 0.25);
+  --color-selected-border: #c2e812;
+
+  /* Hover */
+  --color-hover: rgba(194, 232, 18, 0.22);
+
+  /* Shape & depth */
   --radius-card: 12px;
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.6);
 
-  --color-button-primary-bg: #0c4a6e;
-  --color-button-primary-text: #e0f2fe;
-
-  /* status of submissions */
-  --status-draft-bg: #1e293b;
-  --status-draft-text: #cbd5f5;
-
-  --status-pending-bg: #0c4a6e;
-  --status-pending-text: #bae6fd;
-
-  --status-approved-bg: #14532d;
-  --status-approved-text: #bbf7d0;
-
-  --status-rejected-bg: #7f1d1d;
-  --status-rejected-text: #fecaca;
-
-  /* hover effect */
-  --color-hover: rgba(56, 189, 248, 0.18);
+  /* Logout */
+  --color-logout-bg: rgba(255, 147, 79, 0.18);
+  --color-logout-text: #fed7aa;
+  --color-logout-border: rgba(255, 147, 79, 0.5);
+  --color-logout-hover: rgba(255, 147, 79, 0.3);
 }
 
 /* Base element wiring */
@@ -71,59 +98,82 @@ body {
 
 /* Buttons */
 .btn-primary {
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
+  background-color: var(--color-accent);
+  color: #1a2e05;
   border-radius: var(--radius-card);
-  cursor: pointer;
-  /* border: 1px solid var(--color-panel); */
-  border: 0.5px solid var(--color-text);
+  border: none;
+  font-weight: 600;
+}
+.btn-primary:hover {
+  background-color: var(--color-accent-strong);
 }
 
 .btn-secondary {
   background-color: var(--color-panel);
   color: var(--color-text);
-  border-radius: var(--radius-card);
-  cursor: pointer;
-  border: 0.5px solid var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn-secondary:hover {
+  background-color: var(--color-hover);
 }
 
 .btn-danger {
   background-color: var(--color-danger);
-  color: var(--color-text);
-  border-radius: var(--radius-card);
-  cursor: pointer;
-  color: var(--color-bg);
+  color: var(--color-danger-text);
 }
 .btn-danger:hover {
-  opacity: 0.9;
+  filter: brightness(0.95);
+}
+.btn-logout {
+  background-color: var(--color-logout-bg);
+  color: var(--color-logout-text);
+  border: 1px solid var(--color-logout-border);
+  border-radius: var(--radius-card);
+  font-weight: 600;
+}
+
+.btn-logout:hover {
+  background-color: var(--color-logout-hover);
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  background-color: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
+
+/* Sidebar / Selected vs Available Options */
+.sidebar-item {
+  color: var(--color-text-muted);
+  border-left: 3px solid transparent;
+}
+
+.sidebar-item:hover {
+  background-color: var(--color-hover);
+}
+
+.sidebar-item.selected {
+  background-color: var(--color-selected-bg);
+  border-left-color: var(--color-selected-border);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 /* Submission status badges */
-.status-badge {
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.status-draft {
-  background-color: var(--status-draft-bg);
-  color: var(--status-draft-text);
+.status-approved {
+  background-color: rgba(145, 245, 173, 0.25);
+  color: var(--color-success-text);
 }
 
 .status-pending {
-  background-color: var(--status-pending-bg);
-  color: var(--status-pending-text);
-}
-
-.status-approved {
-  background-color: var(--status-approved-bg);
-  color: var(--status-approved-text);
+  background-color: var(--color-accent-soft);
+  color: var(--color-text);
 }
 
 .status-rejected {
-  background-color: var(--status-rejected-bg);
-  color: var(--status-rejected-text);
+  background-color: rgba(255, 147, 79, 0.25);
+  color: var(--color-danger-text);
 }

@@ -100,13 +100,7 @@ export default function EditRolesModal({
         <div className="flex justify-end gap-3 pt-2">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-sm"
-            style={{
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-card)",
-              backgroundColor: "transparent",
-              color: "var(--color-text)",
-            }}
+            className="px-4 py-2 rounded border text-sm btn-secondary"
           >
             Cancel
           </button>
@@ -114,12 +108,7 @@ export default function EditRolesModal({
           <button
             onClick={() => onSave(user.id, selectedRoles)}
             disabled={loading}
-            className="px-4 py-1.5 text-sm font-medium disabled:opacity-60"
-            style={{
-              backgroundColor: "var(--color-accent)",
-              borderRadius: "var(--radius-card)",
-              color: "#000",
-            }}
+            className="btn-primary px-4 py-2 text-sm border"
           >
             OK
           </button>

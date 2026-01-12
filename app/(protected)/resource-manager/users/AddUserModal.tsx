@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Modal from "@/app/components/Modal";
-import { sendInvite_ResourceManager, getAllRoles_ResourceManager } from "@/app/actions";
+import {
+  sendInvite_ResourceManager,
+  getAllRoles_ResourceManager,
+} from "@/app/actions";
 import { toSentenceCase } from "@/app/utils/utils";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -53,7 +56,10 @@ export default function AddUserModal({
           onAddUser();
         }
       } catch (error) {
-        console.error("Error sending invite link (resource-manager/user)", error);
+        console.error(
+          "Error sending invite link (resource-manager/user)",
+          error
+        );
       }
     },
   });
@@ -95,7 +101,7 @@ export default function AddUserModal({
         <>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded border text-sm"
+            className="px-4 py-2 rounded border text-sm btn-secondary"
           >
             Cancel
           </button>
@@ -170,7 +176,7 @@ export default function AddUserModal({
               roles.map((role) => (
                 <label
                   key={role.id}
-                  className="flex items-center gap-2 text-sm cursor-pointer"
+                  className="flex items-center gap-2 text-sm cursor-pointer max-w-fit"
                 >
                   <input
                     type="checkbox"

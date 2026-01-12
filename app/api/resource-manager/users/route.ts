@@ -26,19 +26,21 @@ export async function GET(req: Request) {
   const where: any = {
     id: { not: authUser.id },
 
-    // 🚫 exclude ADMIN users
-    roles: {
-      none: {
-        role: { name: "ADMIN" },
-      },
-    },
-
-    // 🚫 exclude pending + expired invites
     invites: {
       none: {
         usedAt: null,
       },
     },
+
+    AND: [
+      {
+        roles: {
+          none: {
+            role: { name: "ADMIN" },
+          },
+        },
+      },
+    ],
   };
 
   if (query) {
@@ -50,16 +52,13 @@ export async function GET(req: Request) {
   }
 
   if (roleIds?.length) {
-    where.roles = {
-      AND: [
-        { none: { role: { name: "ADMIN" } } },
-        {
-          some: {
-            roleId: { in: roleIds },
-          },
+    where.AND.push({
+      roles: {
+        some: {
+          roleId: { in: roleIds },
         },
-      ],
-    };
+      },
+    });
   }
 
   const users = await prisma.user.findMany({

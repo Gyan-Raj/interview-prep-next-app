@@ -20,6 +20,7 @@ export const SUBMISSION_STATUS_CONFIG = [
   },
 ] as const;
 
+
 export const statusBadgeClassMap: Record<SubmissionStatusKey, string> = {
   DRAFT: "status-badge status-draft",
   PENDING_REVIEW: "status-badge status-pending",

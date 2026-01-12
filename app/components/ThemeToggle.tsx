@@ -30,16 +30,6 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="rounded-md p-2 transition cursor-pointer"
-      style={{
-        backgroundColor: "transparent",
-      }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.backgroundColor = "var(--color-border)")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
     >
       {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
     </button>

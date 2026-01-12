@@ -96,11 +96,7 @@ export default function SignIn() {
 
         <button
           type="submit"
-          className="mt-2 w-full rounded-md py-2 font-medium"
-          style={{
-            backgroundColor: "var(--color-accent)",
-            color: "#fff",
-          }}
+          className="mt-2 w-full rounded-md py-2 font-medium btn-primary"
           disabled={formik.isSubmitting}
         >
           {formik.isSubmitting ? "Signing in..." : "Sign in"}
