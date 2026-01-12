@@ -52,7 +52,7 @@ export default function EditRolesModal({
       style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
     >
       <div
-        className="w-[420px] p-5 space-y-5"
+        className="w-105 p-5 space-y-5"
         style={{
           backgroundColor: "var(--color-panel)",
           border: "1px solid var(--color-border)",

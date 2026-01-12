@@ -80,14 +80,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
               <div key={item.label}>
                 <div
                   onClick={() => toggleItem(item.label)}
-                  className={`
-  flex items-center gap-3 px-4 py-2 text-sm transition
-  ${
-    isChildActive
-      ? "bg-[var(--color-selected-bg)] font-medium"
-      : "hover:bg-[var(--color-hover)]"
-  }
-`}
+                  className={`flex items-center gap-3 px-4 py-2 text-sm transition ${isChildActive ? "bg-(--color-selected-bg) font-medium" : "hover:bg-(--color-hover)"}`}
                   style={{ color: "var(--color-text)" }}
                 >
                   <Icon size={18} />
@@ -107,7 +100,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
                 {!collapsed && (
                   <div
                     className={`ml-8 overflow-hidden transition-all duration-300 ${
-                      isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                      isOpen ? "max-h-125 opacity-100" : "max-h-0 opacity-0"
                     }`}
                   >
                     {item.children.map((child) => {
@@ -118,14 +111,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className={`
-  flex items-center gap-2 px-4 py-2 text-sm transition
-  ${
-    childActive
-      ? "bg-[var(--color-selected-bg)]"
-      : "hover:bg-[var(--color-hover)]"
-  }
-`}
+                          className={`flex items-center gap-2 px-4 py-2 text-sm transition ${childActive ? "bg-(--color-selected-bg)" : "hover:bg-(--color-hover)"}`}
                           style={{ color: "var(--color-text)" }}
                         >
                           <ChildIcon size={16} />
@@ -146,15 +132,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
             <Link
               key={item.href}
               href={item.href}
-              className={`
-  flex items-center text-sm transition
-  ${collapsed ? "justify-center px-0 py-2" : "gap-2 px-4 py-2"}
-  ${
-    isActive
-      ? "bg-[var(--color-selected-bg)] font-medium"
-      : "hover:bg-[var(--color-hover)]"
-  }
-`}
+              className={`flex items-center text-sm transition ${collapsed ? "justify-center px-0 py-2" : "gap-2 px-4 py-2"} ${isActive ? "bg-(--color-selected-bg) font-medium" : "hover:bg-(--color-hover)"}`}
               style={{ color: "var(--color-text)" }}
             >
               <Icon size={18} />
