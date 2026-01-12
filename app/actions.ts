@@ -216,6 +216,8 @@ export async function getAllQuestions(params: {
   roundIds?: string[];
   approvedOnly?: boolean;
   sort?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }) {
   return api.get("/resource/questions", {
     params: {
@@ -225,6 +227,8 @@ export async function getAllQuestions(params: {
       roundIds: params.roundIds?.join(","),
       approvedOnly: params.approvedOnly,
       sort: params.sort,
+      page: params.page,
+      limit: params.limit,
     },
   });
 }

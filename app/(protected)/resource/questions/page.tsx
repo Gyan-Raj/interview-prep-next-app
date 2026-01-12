@@ -6,29 +6,24 @@ import { Filter } from "lucide-react";
 import { useDebounce, useOutsideClick } from "@/app/hooks/hooks";
 import { toSentenceCase } from "@/app/utils/utils";
 import {
-  getAllQuestions,
   getAllCompanies,
+  getAllQuestions,
   getAllRoles,
   getAllRounds,
 } from "@/app/actions";
 import { QuestionRow } from "@/app/types";
 import QuestionsList from "@/app/components/questions/QuestionsList";
 import { useRouter } from "next/navigation";
+import InfiniteScrollWrapper from "@/app/components/InfiniteScrollWrapper";
 
-type Option = {
-  id: string;
-  name: string;
-};
+type Option = { id: string; name: string };
 
-function Questions() {
-  const rolesDropdownRef = useRef<HTMLDivElement>(null);
-  const companiesDropdownRef = useRef<HTMLDivElement>(null);
-  const roundsDropdownRef = useRef<HTMLDivElement>(null);
+export default function Questions() {
+  const rolesDropdownRef = useRef<HTMLDivElement | null>(null);
+  const companiesDropdownRef = useRef<HTMLDivElement | null>(null);
+  const roundsDropdownRef = useRef<HTMLDivElement | null>(null);
 
   const [query, setQuery] = useState("");
-  const [questions, setQuestions] = useState<QuestionRow[]>([]);
-  const [loading, setLoading] = useState(false);
-
   const [allRoles, setAllRoles] = useState<Option[]>([]);
   const [allCompanies, setAllCompanies] = useState<Option[]>([]);
   const [allRounds, setAllRounds] = useState<Option[]>([]);
@@ -49,15 +44,11 @@ function Questions() {
 
   const isAllRolesSelected =
     allRoles?.length > 0 && selectedRoles?.length === allRoles?.length;
-
   const isAllCompaniesSelected =
     allCompanies?.length > 0 &&
     selectedCompanies.length === allCompanies.length;
-
   const isAllRoundsSelected =
     allRounds?.length > 0 && selectedRounds.length === allRounds.length;
-
-  /* ---------------- Fetch master data ---------------- */
 
   useEffect(() => {
     fetchRoles();
@@ -70,7 +61,7 @@ function Questions() {
     if (res.status === 200) {
       const roles: Option[] = res.data;
       setAllRoles(roles);
-      setSelectedRoles(roles?.map((r) => r.id));
+      setSelectedRoles(roles.map((r) => r.id));
     }
   }
 
@@ -79,7 +70,7 @@ function Questions() {
     if (res.status === 200) {
       const companies: Option[] = res.data;
       setAllCompanies(companies);
-      setSelectedCompanies(companies?.map((c) => c.id));
+      setSelectedCompanies(companies.map((c) => c.id));
     }
   }
 
@@ -88,118 +79,44 @@ function Questions() {
     if (res.status === 200) {
       const rounds: Option[] = res.data;
       setAllRounds(rounds);
-      setSelectedRounds(rounds?.map((c) => c.id));
+      setSelectedRounds(rounds.map((r) => r.id));
     }
   }
-
-  /* ---------------- Fetch questions ---------------- */
-
-  useEffect(() => {
-    if (
-      selectedRoles?.length &&
-      selectedCompanies?.length &&
-      selectedRounds?.length
-    ) {
-      fetchQuestions();
-    }
-  }, [debouncedQuery, debouncedRoles, debouncedCompanies, debouncedRounds]);
-
-  const questionsCache = useRef<Map<string, QuestionRow[]>>(new Map());
-
-  async function fetchQuestions() {
-    const cacheKey = JSON.stringify({
-      q: debouncedQuery,
-      r: debouncedRoles,
-      c: debouncedCompanies,
-      rd: debouncedRounds,
-    });
-
-    if (questionsCache.current.has(cacheKey)) {
-      setQuestions(questionsCache.current.get(cacheKey)!);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await getAllQuestions({
-        searchText: debouncedQuery,
-        roleIds: debouncedRoles,
-        companyIds: debouncedCompanies,
-        roundIds: debouncedRounds,
-        approvedOnly: true,
-        sort: "desc",
-      });
-
-      if (res.status === 200) {
-        const normalized = res.data.questions.map((q: any) => ({
-          id: q.id,
-          text: q.text,
-          tags: q.tags,
-          mediaUrl: q.mediaUrl,
-          interview: {
-            companyName: q.interview?.companyName,
-            role: q.interview?.role,
-            round: q.interview?.round,
-            interviewDate: q.interview?.interviewDate,
-          },
-        }));
-
-        questionsCache.current.set(cacheKey, normalized);
-        setQuestions(normalized);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  /* ---------------- Helpers ---------------- */
 
   function toggleRole(id: string) {
     setSelectedRoles((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
-
   function toggleCompany(id: string) {
     setSelectedCompanies((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
-
   function toggleRound(id: string) {
     setSelectedRounds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }
-
   function toggleAllRoles() {
-    if (!isAllRolesSelected) {
-      setSelectedRoles(allRoles.map((r) => r.id));
-    }
+    if (!isAllRolesSelected) setSelectedRoles(allRoles.map((r) => r.id));
   }
-
   function toggleAllCompanies() {
-    if (!isAllCompaniesSelected) {
+    if (!isAllCompaniesSelected)
       setSelectedCompanies(allCompanies.map((c) => c.id));
-    }
   }
-
   function toggleAllRounds() {
-    if (!isAllRoundsSelected) {
-      setSelectedRounds(allRounds.map((c) => c.id));
-    }
+    if (!isAllRoundsSelected) setSelectedRounds(allRounds.map((c) => c.id));
   }
 
   useOutsideClick(rolesDropdownRef, () => setRolesOpen(false));
   useOutsideClick(companiesDropdownRef, () => setCompaniesOpen(false));
   useOutsideClick(roundsDropdownRef, () => setRoundsOpen(false));
 
-  /* ---------------- Labels ---------------- */
-
   const rolesLabel = isAllRolesSelected
     ? "All Roles"
     : selectedRoles
-        ?.map((id) => allRoles.find((r) => r.id === id)?.name)
+        .map((id) => allRoles.find((r) => r.id === id)?.name)
         .filter(Boolean)
         .map((v) => toSentenceCase(v!))
         .join(", ");
@@ -207,15 +124,15 @@ function Questions() {
   const companiesLabel = isAllCompaniesSelected
     ? "All Companies"
     : selectedCompanies
-        ?.map((id) => allCompanies.find((c) => c.id === id)?.name)
+        .map((id) => allCompanies.find((c) => c.id === id)?.name)
         .filter(Boolean)
         .map((v) => toSentenceCase(v!))
         .join(", ");
 
-  const roundsLabel = isAllCompaniesSelected
+  const roundsLabel = isAllRoundsSelected
     ? "All Rounds"
     : selectedRounds
-        ?.map((id) => allRounds.find((c) => c.id === id)?.name)
+        .map((id) => allRounds.find((c) => c.id === id)?.name)
         .filter(Boolean)
         .map((v) => toSentenceCase(v!))
         .join(", ");
@@ -238,69 +155,6 @@ function Questions() {
           }}
         />
 
-        {/* Roles Filter */}
-        <div className="flex items-center gap-3 flex-nowrap">
-          <div ref={rolesDropdownRef} className="relative">
-            <button
-              onClick={() => setRolesOpen((v) => !v)}
-              className="px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1"
-              style={{
-                backgroundColor: "var(--color-panel)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-                color: "var(--color-text)",
-              }}
-            >
-              <Filter size={14} style={{ opacity: 0.7 }} />
-              {rolesLabel || "Select roles"}
-            </button>
-
-            {rolesOpen && (
-              <div
-                className="absolute mt-2 w-56 p-3 space-y-2 z-20 right-0"
-                style={{
-                  backgroundColor: "var(--color-panel)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                {/* All */}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={isAllRolesSelected}
-                    disabled={isAllRolesSelected}
-                    onChange={toggleAllRoles}
-                  />
-                  <span>All Roles</span>
-                </label>
-
-                <hr style={{ borderColor: "var(--color-border)" }} />
-
-                {allRoles?.map((role) => (
-                  <label
-                    key={role.id}
-                    className="flex items-center gap-2 text-sm"
-                    style={{ opacity: isAllRolesSelected ? 0.5 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRoles.includes(role.id)}
-                      disabled={
-                        selectedRoles.length === 1 &&
-                        selectedRoles[0] === role.id
-                      }
-                      onChange={() => toggleRole(role.id)}
-                    />
-                    {role.name}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Companies Filter */}
         <div className="flex items-center gap-3 flex-nowrap">
           <div ref={companiesDropdownRef} className="relative">
@@ -315,7 +169,7 @@ function Questions() {
               }}
             >
               <Filter size={14} style={{ opacity: 0.7 }} />
-              {companiesLabel || "Select companies"}
+              {companiesLabel || "Select company"}
             </button>
 
             {companiesOpen && (
@@ -378,7 +232,7 @@ function Questions() {
               }}
             >
               <Filter size={14} style={{ opacity: 0.7 }} />
-              {roundsLabel || "Select rounds"}
+              {roundsLabel || "Select round"}
             </button>
 
             {roundsOpen && (
@@ -426,26 +280,126 @@ function Questions() {
             )}
           </div>
         </div>
+
+        {/* Roles Filter */}
+        <div className="flex items-center gap-3 flex-nowrap">
+          <div ref={rolesDropdownRef} className="relative">
+            <button
+              onClick={() => setRolesOpen((v) => !v)}
+              className="px-3 py-2 text-sm whitespace-nowrap flex items-center gap-1"
+              style={{
+                backgroundColor: "var(--color-panel)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-card)",
+                color: "var(--color-text)",
+              }}
+            >
+              <Filter size={14} style={{ opacity: 0.7 }} />
+              {rolesLabel || "Select role"}
+            </button>
+
+            {rolesOpen && (
+              <div
+                className="absolute mt-2 w-56 p-3 space-y-2 z-20 right-0"
+                style={{
+                  backgroundColor: "var(--color-panel)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-card)",
+                  boxShadow: "var(--shadow-card)",
+                }}
+              >
+                {/* All */}
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={isAllRolesSelected}
+                    disabled={isAllRolesSelected}
+                    onChange={toggleAllRoles}
+                  />
+                  <span>All Roles</span>
+                </label>
+
+                <hr style={{ borderColor: "var(--color-border)" }} />
+
+                {allRoles?.map((role) => (
+                  <label
+                    key={role.id}
+                    className="flex items-center gap-2 text-sm"
+                    style={{ opacity: isAllRolesSelected ? 0.5 : 1 }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRoles.includes(role.id)}
+                      disabled={
+                        selectedRoles.length === 1 &&
+                        selectedRoles[0] === role.id
+                      }
+                      onChange={() => toggleRole(role.id)}
+                    />
+                    {role.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* List */}
-      {!loading && (
-        <QuestionsList
-          questions={questions}
-          onItemClick={(question) => {
-            const params = new URLSearchParams({
-              role: question.interview.role ?? "",
-              text: question.text,
-            });
-            return router.push(
-              `/resource/questions/${question.id}?${params.toString()}`
-            );
-          }}
-          renderActions={() => ""}
-        />
-      )}
+      <InfiniteScrollWrapper<QuestionRow>
+        fetchPage={async ({ page, limit }) => {
+          const res = await getAllQuestions({
+            searchText: debouncedQuery,
+            roleIds: debouncedRoles,
+            companyIds: debouncedCompanies,
+            roundIds: debouncedRounds,
+            approvedOnly: true,
+            sort: "desc",
+            page,
+            limit,
+          });
+
+          if (res.status !== 200) {
+            throw new Error("Failed to fetch questions");
+          }
+
+          return {
+            items: res.data.questions.map((q: any) => ({
+              id: q.id,
+              text: q.text,
+              createdAt: q.createdAt,
+              interview: q.interview,
+            })) as QuestionRow[],
+            hasMore: Boolean(res.data.hasMore),
+          };
+        }}
+        deps={[
+          debouncedQuery,
+          debouncedRoles.join(","),
+          debouncedCompanies.join(","),
+          debouncedRounds.join(","),
+        ]}
+        initialLimit={20}
+        emptyMessage={
+          <div className="text-sm opacity-60">No questions found.</div>
+        }
+      >
+        {(questions) => (
+          <QuestionsList
+            questions={questions}
+            onItemClick={(question) => {
+              const params = new URLSearchParams({
+                role: question.interview.role ?? "",
+                text: question.text,
+              });
+              router.push(
+                `/resource/questions/${question.id}?${params.toString()}`
+              );
+            }}
+            renderActions={() => ""}
+          />
+        )}
+      </InfiniteScrollWrapper>
     </div>
   );
 }
-
-export default Questions;
