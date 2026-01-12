@@ -17,19 +17,21 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Require access token
+  // 2️⃣ Require presence of access token
   const token = req.cookies.get("accessToken")?.value;
+
+  // Truly logged out (no token at all)
   if (!token) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // 3️⃣ Verify token (identity only)
   try {
     jwt.verify(token, SECRET_KEY);
-    return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/", req.url));
+    // intentionally ignore
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
