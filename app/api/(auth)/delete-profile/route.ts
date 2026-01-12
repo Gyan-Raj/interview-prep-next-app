@@ -8,8 +8,9 @@ export async function POST() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // 🔐 Prevent deleting last ADMIN
-  if (authUser.activeRole?.name === "ADMIN") {
+  const isAdmin = authUser.roles.some((r) => r.name === "ADMIN");
+
+  if (isAdmin) {
     const adminCount = await prisma.userRole.count({
       where: { role: { name: "ADMIN" } },
     });
@@ -22,12 +23,15 @@ export async function POST() {
     }
   }
 
-  // 🗑️ Delete user (cascades: UserRole, Session)
-  await prisma.user.delete({
-    where: { id: authUser.id },
-  });
+  await prisma.$transaction([
+    prisma.session.deleteMany({
+      where: { userId: authUser.id },
+    }),
+    prisma.user.delete({
+      where: { id: authUser.id },
+    }),
+  ]);
 
-  // 🚪 Clear auth cookies = logout
   const response = NextResponse.json({ success: true });
 
   response.cookies.set("accessToken", "", {

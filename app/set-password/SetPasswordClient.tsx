@@ -2,9 +2,9 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { changePassword } from "../actions";
+import { setPasswordAfterAcceptingInvite } from "../actions";
 
-export default function ChangePasswordClient() {
+export default function SetPasswordClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -25,7 +25,7 @@ export default function ChangePasswordClient() {
     setLoading(true);
 
     try {
-      const res = await changePassword({ token, password });
+      const res = await setPasswordAfterAcceptingInvite({ token, password });
 
       if (res.status !== 200) {
         const data = await res.data;

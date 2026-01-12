@@ -18,8 +18,8 @@ export default function ResourceManagerSettings() {
   const router = useRouter();
 
   // Change password state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [password, setPassword] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [isSelfEdit, setIsSelfEdit] = useState(false);
@@ -35,7 +35,7 @@ export default function ResourceManagerSettings() {
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const res = await getAllRoles_ResourceManager({purpose:"edit"});
+        const res = await getAllRoles_ResourceManager({ purpose: "edit" });
         if (res.status === 200) {
           setAllRoles(res.data);
         }
@@ -60,7 +60,7 @@ export default function ResourceManagerSettings() {
       e.preventDefault();
       setLoading(true);
 
-      const res = await changePassword({ currentPassword, password });
+      const res = await changePassword({ oldPassword, newPassword });
       setLoading(false);
 
       if (res.status === 200) {
@@ -120,7 +120,10 @@ export default function ResourceManagerSettings() {
       }
       setIsSelfEdit(false);
     } catch (error) {
-      console.error("Error updating user roles(api/resource-manager/roles)", error);
+      console.error(
+        "Error updating user roles(api/resource-manager/roles)",
+        error
+      );
     }
   }
 
@@ -150,8 +153,8 @@ export default function ResourceManagerSettings() {
         <input
           type="password"
           placeholder="Current password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
           className="w-full rounded border px-3 py-2"
           style={{ borderColor: "var(--color-border)" }}
           required
@@ -160,8 +163,8 @@ export default function ResourceManagerSettings() {
         <input
           type="password"
           placeholder="New password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
           className="w-full rounded border px-3 py-2"
           style={{ borderColor: "var(--color-border)" }}
           required

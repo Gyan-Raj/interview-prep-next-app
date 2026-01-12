@@ -11,10 +11,9 @@ import {
   SubmissionRow,
   SubmissionStatusKey,
 } from "@/app/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import { toSentenceCase } from "@/app/utils/utils";
-import { Filter } from "lucide-react";
 import RequestSubmissionModal from "@/app/(protected)/resource-manager/submissions/RequestSubmissionModal";
 import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
 import { useRouter } from "next/navigation";
@@ -22,6 +21,8 @@ import SubmissionsList from "@/app/components/submissions/SubmissionsList";
 import SubmissionActionsMenu from "@/app/components/submissions/SubmissionActionsMenu";
 import ConfirmationDialog from "@/app/components/ConfirmationDialog";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
+import ListToolbar from "@/app/components/list/ListToolbar";
+import SearchInput from "@/app/components/SearchInput";
 
 const submissionStatusOptions = SUBMISSION_STATUS_CONFIG.map((s) => ({
   id: s.key,
@@ -138,31 +139,26 @@ export default function ResourceManagerSubmissions() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4">
-        <input
-          placeholder="Search submissions"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 min-w-0 max-w-md px-3 py-2 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-card)",
-            color: "var(--color-text)",
-          }}
-        />
-
-        <div className="flex items-center gap-4">
-          <FiltersMenu filters={filtersConfig} />
-
-          <button
-            onClick={() => setShowAddSubmission(true)}
-            className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
-          >
-            Request New Submission
-          </button>
-        </div>
-      </div>
+      <ListToolbar
+        left={
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search submissions"
+          />
+        }
+        right={
+          <>
+            <FiltersMenu filters={filtersConfig} />
+            <button
+              className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
+              onClick={() => setShowAddSubmission(true)}
+            >
+              Request Submission
+            </button>
+          </>
+        }
+      />
 
       {/* Submissions List */}
       <div style={{ position: "relative" }}>

@@ -15,6 +15,8 @@ import SubmissionsList from "@/app/components/submissions/SubmissionsList";
 import SubmissionActionsMenu from "@/app/components/submissions/SubmissionActionsMenu";
 import { useRouter } from "next/navigation";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
+import ListToolbar from "@/app/components/list/ListToolbar";
+import SearchInput from "@/app/components/SearchInput";
 
 const submissionStatusOptions = SUBMISSION_STATUS_CONFIG.map((s) => ({
   id: s.key,
@@ -34,6 +36,10 @@ export default function ResourceSubmissions() {
   >(SUBMISSION_STATUS_CONFIG.map((s) => s.key));
 
   const debouncedQuery = useDebounce(query, 400);
+  const debouncedSubmissionStatuses = useDebounce(
+    selectedSubmissionStatus,
+    400
+  );
 
   async function fetchAllMySubmissions() {
     setListLoading(true);
@@ -55,11 +61,6 @@ export default function ResourceSubmissions() {
       setListLoading(false);
     }
   }
-
-  const debouncedSubmissionStatuses = useDebounce(
-    selectedSubmissionStatus,
-    400
-  );
 
   const isAllSubmissionStatusSelected =
     submissionStatusOptions.length > 0 &&
@@ -91,29 +92,23 @@ export default function ResourceSubmissions() {
 
   useEffect(() => {
     if (allSubmissionStatus.length > 0) {
-      fetchAllMySubmissions(); // 👈 list refresh only
+      fetchAllMySubmissions();
     }
   }, [debouncedQuery, debouncedSubmissionStatuses]);
 
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center gap-4">
-        <input
-          placeholder="Search submissions"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 min-w-0 max-w-md px-3 py-2 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-card)",
-            color: "var(--color-text)",
-          }}
-        />
-
-        <FiltersMenu filters={filtersConfig} />
-      </div>
+      <ListToolbar
+        left={
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search submissions"
+          />
+        }
+        right={<FiltersMenu filters={filtersConfig} />}
+      />
 
       {/* Submissions List */}
       <div style={{ position: "relative" }}>
@@ -123,7 +118,6 @@ export default function ResourceSubmissions() {
             renderActions={(submission) => {
               const actions: { key: ConfirmAction; label: string }[] = [];
 
-              // Resource can edit draft or rejected
               if (
                 submission.status === "DRAFT" ||
                 submission.status === "REJECTED"
@@ -131,7 +125,6 @@ export default function ResourceSubmissions() {
                 actions.push({ key: "edit", label: "Edit" });
               }
 
-              // Resource can submit draft
               if (submission.status === "DRAFT" && !submission.submittedAt) {
                 actions.push({ key: "submit", label: "Submit" });
               }
@@ -142,17 +135,9 @@ export default function ResourceSubmissions() {
                 <SubmissionActionsMenu
                   actions={actions}
                   onAction={(action) => {
-                    if (action === "edit") {
-                      router.push(
-                        `/resource/submissions/${submission.submissionId}`
-                      );
-                    }
-
-                    if (action === "submit") {
-                      router.push(
-                        `/resource/submissions/${submission.submissionId}`
-                      );
-                    }
+                    router.push(
+                      `/resource/submissions/${submission.submissionId}`
+                    );
                   }}
                 />
               );

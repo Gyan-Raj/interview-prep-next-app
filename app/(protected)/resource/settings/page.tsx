@@ -8,8 +8,8 @@ export default function ResourceSettings() {
   const router = useRouter();
 
   // Change password state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [password, setPassword] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Delete profile state
@@ -19,9 +19,12 @@ export default function ResourceSettings() {
     try {
       e.preventDefault();
       setLoading(true);
+      if (oldPassword === newPassword) {
+        alert("Old and new passwords cannot be same");
+        return;
+      }
 
-      const res = await changePassword({ currentPassword, password });
-      setLoading(false);
+      const res = await changePassword({ oldPassword, newPassword });
 
       if (res.status === 200) {
         alert("Password changed successfully. Please log in again.");
@@ -33,6 +36,8 @@ export default function ResourceSettings() {
       }
     } catch (error) {
       console.error("Error changing password (api/change-password)", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -75,8 +80,8 @@ export default function ResourceSettings() {
         <input
           type="password"
           placeholder="Current password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
           className="w-full rounded border px-3 py-2"
           style={{ borderColor: "var(--color-border)" }}
           required
@@ -85,8 +90,8 @@ export default function ResourceSettings() {
         <input
           type="password"
           placeholder="New password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
           className="w-full rounded border px-3 py-2"
           style={{ borderColor: "var(--color-border)" }}
           required

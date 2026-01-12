@@ -5,6 +5,7 @@ import {
   LoginType,
   RequestSubmissionPayload,
   SendInvite_Admin_Types,
+  SetPasswordTypes,
   SwitchRoleTypes,
   UpdateRoles_Admin_Types,
   UpdateSubmissionDetail_Resource_Types,
@@ -25,7 +26,9 @@ export async function acceptInvite(token: string) {
     params: { token },
   });
 }
-
+export async function setPasswordAfterAcceptingInvite(payload: SetPasswordTypes) {
+  return api.post("/change-password", payload);
+}
 export async function deleteProfile() {
   return api.post("/delete-profile");
 }

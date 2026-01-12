@@ -9,16 +9,17 @@ import {
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
 import { FilterConfig, Role, UserRow } from "@/app/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import EditRolesModal from "./EditRolesModal";
 import { canAdminDeleteUser, toSentenceCase } from "@/app/utils/utils";
-import { Filter } from "lucide-react";
 import AddUserModal from "@/app/(protected)/admin/users/AddUserModal";
 import UsersList from "@/app/components/users/UsersList";
 import UserActionsMenu from "@/app/components/users/UserActionsMenu";
 import ConfirmationDialog from "@/app/components/ConfirmationDialog";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
+import ListToolbar from "@/app/components/list/ListToolbar";
+import SearchInput from "@/app/components/SearchInput";
 
 type RoleOption = {
   id: string;
@@ -40,17 +41,18 @@ export default function AdminUsers() {
   const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
 
   const debouncedQuery = useDebounce(query, 400);
+  const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
 
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((state) => state.auth.user);
+
   const roleOptions = allRoles.map((r) => ({
     id: r.id,
     name: toSentenceCase(r.name),
   }));
 
-  async function fetchUsers(isInitial = false) {
+  async function fetchUsers() {
     setListLoading(true);
-
     try {
       const res = await getUsers_Admin({
         searchText: debouncedQuery,
@@ -70,17 +72,9 @@ export default function AdminUsers() {
     }
   }
 
-  const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
-
   useEffect(() => {
     if (allRoles.length > 0) {
-      fetchUsers(true); // 👈 initial page load
-    }
-  }, [allRoles]);
-
-  useEffect(() => {
-    if (allRoles.length > 0) {
-      fetchUsers(false); // 👈 list refresh only
+      fetchUsers();
     }
   }, [debouncedQuery, debouncedRoleIds]);
 
@@ -109,7 +103,7 @@ export default function AdminUsers() {
       const res = await getAllRoles_Admin();
       if (res.status === 200) {
         setAllRoles(res.data);
-        setSelectedRoleIds(res.data.map((r: Role) => r.id)); // all selected
+        setSelectedRoleIds(res.data.map((r: Role) => r.id));
       }
     }
     fetchRoles();
@@ -140,48 +134,40 @@ export default function AdminUsers() {
 
   const handleDeleteProfile = async () => {
     try {
-      const res = await deleteUser_Admin({
-        userId: selectedUser?.id,
-      });
-
+      const res = await deleteUser_Admin({ userId: selectedUser?.id });
       if (res.status === 200) {
         fetchUsers();
         setShowDelete(false);
         setSelectedUser(null);
       }
     } catch (e) {
-      console.error("Error fetching users", e);
+      console.error("Error deleting user", e);
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4">
-        <input
-          placeholder="Search user"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 min-w-0 max-w-md px-3 py-2 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-card)",
-            color: "var(--color-text)",
-          }}
-        />
-
-        <div className="flex items-center gap-4 flex-nowrap">
-          <FiltersMenu filters={filtersConfig} />
-
-          <button
-            onClick={() => setShowAddUser(true)}
-            className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
-          >
-            + Add User
-          </button>
-        </div>
-      </div>
+      <ListToolbar
+        left={
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search user"
+          />
+        }
+        right={
+          <>
+            <FiltersMenu filters={filtersConfig} />
+            <button
+              onClick={() => setShowAddUser(true)}
+              className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
+            >
+              + Add User
+            </button>
+          </>
+        }
+      />
 
       {/* Users List */}
       <div style={{ position: "relative" }}>
@@ -190,7 +176,6 @@ export default function AdminUsers() {
             users={users}
             renderActions={(user) => {
               const canDelete = canAdminDeleteUser(user);
-
               return (
                 <UserActionsMenu
                   canDelete={canDelete}
@@ -237,9 +222,8 @@ export default function AdminUsers() {
         <AddUserModal
           onClose={() => setShowAddUser(false)}
           onAddUser={() => {
-            // call create user action here
             setShowAddUser(false);
-            fetchUsers(false);
+            fetchUsers();
           }}
         />
       )}

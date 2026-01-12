@@ -18,6 +18,8 @@ import UsersList from "@/app/components/users/UsersList";
 import UserActionsMenu from "@/app/components/users/UserActionsMenu";
 import ConfirmationDialog from "@/app/components/ConfirmationDialog";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
+import ListToolbar from "@/app/components/list/ListToolbar";
+import SearchInput from "@/app/components/SearchInput";
 
 type RoleOption = {
   id: string;
@@ -169,31 +171,26 @@ export default function ResourceManagerUsers() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4">
-        <input
-          placeholder="Search user"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 min-w-0 max-w-md px-3 py-2 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-card)",
-            color: "var(--color-text)",
-          }}
-        />
-
-        <div className="flex items-center gap-4">
-          <FiltersMenu filters={filtersConfig} />
-
-          <button
-            onClick={() => setShowAddUser(true)}
-            className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
-          >
-            + Add User
-          </button>
-        </div>
-      </div>
+      <ListToolbar
+        left={
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search users"
+          />
+        }
+        right={
+          <>
+            <FiltersMenu filters={filtersConfig} />
+            <button
+              className="btn-primary px-4 py-2 text-sm font-medium whitespace-nowrap"
+              onClick={() => setShowAddUser(true)}
+            >
+              + Add User
+            </button>
+          </>
+        }
+      />
 
       {/* Users List */}
       <div style={{ position: "relative" }}>

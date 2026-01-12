@@ -19,9 +19,12 @@ export interface AuthUser {
   roles: Role[];
 }
 export type ChangePasswordTypes = {
-  currentPassword?: string;
+  oldPassword: string;
+  newPassword: string;
+};
+export type SetPasswordTypes = {
   password: string;
-  token?: string;
+  token: string;
 };
 export type SwitchRoleTypes = {
   roleId: string;

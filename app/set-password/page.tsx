@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ChangePasswordClient from "@/app/change-password/ChangePasswordClient";
+import ChangePasswordClient from "@/app/set-password/SetPasswordClient";
 
 export default function ChangePasswordPage() {
   return (

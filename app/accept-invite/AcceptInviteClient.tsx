@@ -18,7 +18,6 @@ export default function AcceptInviteClient() {
       }
 
       try {
-        // const res = await fetch(`/api/accept-invite?token=${token}`);
         const res = await acceptInvite(token);
 
         // 2️⃣ Invalid / expired / used → redirect home
@@ -28,7 +27,7 @@ export default function AcceptInviteClient() {
         }
 
         // 3️⃣ Valid invite → go to change password
-        router.replace(`/change-password?token=${token}`);
+        router.replace(`/set-password?token=${token}`);
       } catch (error) {
         console.error("Accept invite failed:", error);
         router.replace("/");

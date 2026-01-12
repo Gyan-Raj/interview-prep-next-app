@@ -5,35 +5,32 @@ import { createSession } from "@/app/lib/session";
 
 export async function POST(req: Request) {
   const body = await req.json();
+
   const { token, password } = body as {
     token?: string;
     password?: string;
   };
 
   // 1️⃣ Basic validation
-  if (!password || password.length < 8) {
-    return NextResponse.json(
-      { message: "Password must be at least 8 characters" },
-      { status: 400 }
-    );
-  }
-
-  // 2️⃣ Invite flow
   if (!token) {
     return NextResponse.json(
-      { message: "Unauthorized password change" },
+      { message: "Invalid or missing invite token" },
       { status: 401 }
     );
   }
 
+  if (!password || password.length < 8) {
+    return NextResponse.json(
+      { message: "Password must be at least 8 characters long" },
+      { status: 400 }
+    );
+  }
+
+  // 2️⃣ Fetch invite + user
   const invite = await prisma.userInvite.findUnique({
     where: { token },
     include: {
-      user: {
-        include: {
-          activeRole: true,
-        },
-      },
+      user: true,
     },
   });
 
@@ -52,19 +49,23 @@ export async function POST(req: Request) {
   }
 
   if (invite.expiresAt < new Date()) {
-    return NextResponse.json({ message: "Invite expired" }, { status: 410 });
+    return NextResponse.json(
+      { message: "Invite has expired" },
+      { status: 410 }
+    );
   }
 
-  if (!invite.user.activeRole) {
+  if (!invite.user) {
     return NextResponse.json(
-      { message: "User has no active role assigned" },
+      { message: "Associated user not found" },
       { status: 500 }
     );
   }
 
+  // 3️⃣ Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // 3️⃣ Atomic update
+  // 4️⃣ Atomic update
   await prisma.$transaction([
     prisma.user.update({
       where: { id: invite.userId },
@@ -83,13 +84,11 @@ export async function POST(req: Request) {
     }),
   ]);
 
-  // 4️⃣ Create session
+  // 5️⃣ Create new session (sets cookies)
   await createSession(invite.userId);
 
   return NextResponse.json(
-    {
-      message: "Password set successfully",
-    },
+    { message: "Password set successfully" },
     { status: 200 }
   );
 }

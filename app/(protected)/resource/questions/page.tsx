@@ -13,6 +13,8 @@ import { FilterConfig, QuestionRow } from "@/app/types";
 import QuestionsList from "@/app/components/questions/QuestionsList";
 import { useRouter } from "next/navigation";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
+import ListToolbar from "@/app/components/list/ListToolbar";
+import SearchInput from "@/app/components/SearchInput";
 
 type Option = {
   id: string;
@@ -230,22 +232,16 @@ function Questions() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center gap-4">
-        <input
-          placeholder="Search questions"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 px-3 py-2 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--color-panel)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-card)",
-          }}
-        />
-
-        {/* Filters */}
-        <FiltersMenu filters={filtersConfig} />
-      </div>
+      <ListToolbar
+        left={
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search questions"
+          />
+        }
+        right={<FiltersMenu filters={filtersConfig} />}
+      />
 
       {/* List */}
       <QuestionsList
