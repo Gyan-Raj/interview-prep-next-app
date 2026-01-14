@@ -28,19 +28,19 @@ type RoleOption = {
 
 export default function ResourceManagerUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [query, setQuery] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
-
   const [showAddUser, setShowAddUser] = useState(false);
   const [userAction, setUserAction] = useState<ConfirmAction | null>(null);
 
   const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const debouncedQuery = useDebounce(query, 400);
+  const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
 
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((state) => state.auth.user);
@@ -71,17 +71,9 @@ export default function ResourceManagerUsers() {
     }
   }
 
-  const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
-
   useEffect(() => {
     if (allRoles.length > 0) {
-      fetchUsers(true); // 👈 initial page load
-    }
-  }, [allRoles]);
-
-  useEffect(() => {
-    if (allRoles.length > 0) {
-      fetchUsers(false); // 👈 list refresh only
+      fetchUsers(false);
     }
   }, [debouncedQuery, debouncedRoleIds]);
 
