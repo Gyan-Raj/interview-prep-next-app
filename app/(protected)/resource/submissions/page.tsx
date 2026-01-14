@@ -96,8 +96,6 @@ export default function ResourceSubmissions() {
     }
   }, [debouncedQuery, debouncedSubmissionStatuses]);
 
-  console.log(isLoading, "isLoading:RS");
-
   return (
     <div className="space-y-6">
       {/* Toolbar */}

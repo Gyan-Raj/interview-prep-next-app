@@ -14,8 +14,6 @@ export default function UserActionsMenu({
   user: UserRow;
   canDelete: boolean;
 }) {
-  console.log(actions, "actions");
-
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 

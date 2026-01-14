@@ -70,7 +70,6 @@ export default function ResourceManagerUsers() {
       setIsLoading(false);
     }
   }
-  console.log(isLoading, "isLoading");
 
   const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
 
