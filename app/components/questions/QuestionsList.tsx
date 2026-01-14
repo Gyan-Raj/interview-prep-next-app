@@ -15,9 +15,7 @@ export default function QuestionsList({
   onItemClick?: (submission: QuestionRow) => void;
   emptyMessage?: string;
   isLoading?: boolean;
-  }) {
-  console.log(isLoading,"isLoading");
-  
+}) {
   if (!isLoading && questions.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
   }

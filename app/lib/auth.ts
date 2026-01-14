@@ -18,6 +18,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   let payload: JwtPayload;
   try {
     payload = jwt.verify(token, secretKey) as JwtPayload;
+    console.log(payload, "payload");
   } catch {
     return null;
   }

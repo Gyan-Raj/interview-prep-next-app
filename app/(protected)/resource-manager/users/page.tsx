@@ -8,7 +8,7 @@ import {
 } from "@/app/actions";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
-import { FilterConfig, Role, UserRow } from "@/app/types";
+import { ConfirmAction, FilterConfig, Role, UserRow } from "@/app/types";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import EditRolesModal from "./EditRolesModal";
@@ -35,9 +35,9 @@ export default function ResourceManagerUsers() {
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
-  const [showEditRoles, setShowEditRoles] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
+
   const [showAddUser, setShowAddUser] = useState(false);
+  const [userAction, setUserAction] = useState<ConfirmAction | null>(null);
 
   const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
 
@@ -109,7 +109,7 @@ export default function ResourceManagerUsers() {
           dispatch(setUser(updatedUser));
         }
       }
-      setShowEditRoles(false);
+      setUserAction(null);
     } catch (error) {
       console.error(
         "Error updating user roles(api/resource-manager/roles)",
@@ -160,7 +160,7 @@ export default function ResourceManagerUsers() {
 
       if (res.status === 200) {
         fetchUsers();
-        setShowDelete(false);
+        setUserAction(null);
         setSelectedUser(null);
       }
     } catch (e) {
@@ -202,15 +202,16 @@ export default function ResourceManagerUsers() {
 
               return (
                 <UserActionsMenu
+                  actions={[
+                    { key: "edit", label: "Edit roles" },
+                    { key: "delete", label: "Delete user" },
+                  ]}
+                  onAction={(action) => {
+                    setSelectedUser(user);
+                    setUserAction(action);
+                  }}
+                  user={user}
                   canDelete={canDelete}
-                  onEdit={() => {
-                    setSelectedUser(user);
-                    setShowEditRoles(true);
-                  }}
-                  onDelete={() => {
-                    setSelectedUser(user);
-                    setShowDelete(true);
-                  }}
                 />
               );
             }}
@@ -218,17 +219,17 @@ export default function ResourceManagerUsers() {
         )}
       </div>
 
-      {showEditRoles && selectedUser && (
+      {userAction === "edit" && selectedUser && (
         <EditRolesModal
           user={selectedUser}
-          onClose={() => setShowEditRoles(false)}
+          onClose={() => setUserAction(null)}
           onSave={updateRoles}
         />
       )}
 
-      {showDelete && selectedUser && (
+      {userAction === "delete" && selectedUser && (
         <ConfirmationDialog
-          open={showDelete}
+          open={userAction === "delete"}
           action="delete"
           entity="user"
           details={
@@ -237,7 +238,7 @@ export default function ResourceManagerUsers() {
               <div className="opacity-70">{selectedUser.email}</div>
             </>
           }
-          onCancel={() => setShowDelete(false)}
+          onCancel={() => setUserAction(null)}
           onConfirm={handleDeleteProfile}
         />
       )}

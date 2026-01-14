@@ -151,11 +151,7 @@ export default function ResourceSubmissionDetailPage() {
         }}
       >
         <div className="relative flex items-start justify-between px-4 py-2">
-          <div
-            className={`absolute top-0 right-0 ${
-              statusBadgeClassMap[submission.status]
-            }`}
-          >
+          <div className={`${statusBadgeClassMap[submission.status]}`}>
             {toSentenceCase(submission.status)}
           </div>
 

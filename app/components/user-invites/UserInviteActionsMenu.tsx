@@ -1,7 +1,6 @@
 "use client";
 
 import { ConfirmAction, InviteRow } from "@/app/types";
-import { copyInviteLink } from "@/app/utils/utils";
 import { useEffect, useRef, useState } from "react";
 
 export default function UserInviteActionsMenu({
@@ -78,6 +77,27 @@ export default function UserInviteActionsMenu({
                   index < actions.length - 1
                     ? "1px solid var(--color-border)"
                     : undefined,
+                borderRadius:
+                  index < actions.length - 1
+                    ? "var(--radius-cdard)"
+                    : "var(--radius-card) var(--radius-card)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = canCancel
+                  ? "var(--color-accent)"
+                  : "transparent";
+                e.currentTarget.style.borderRadius =
+                  actions.length === 1
+                    ? "var(--radius-card)"
+                    : index < actions.length - 1
+                    ? "var(--radius-card) var(--radius-card) 0 0"
+                    : "0 0 var(--radius-card) var(--radius-card)";
+                e.currentTarget.style.borderBottom = canCancel
+                  ? "1px solid var(--color-border)"
+                  : "default";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
               {action.label}

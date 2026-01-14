@@ -8,7 +8,7 @@ import {
 } from "@/app/actions";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { setUser } from "@/app/store/slices/authSlice";
-import { FilterConfig, Role, UserRow } from "@/app/types";
+import { ConfirmAction, FilterConfig, Role, UserRow } from "@/app/types";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
 import EditRolesModal from "./EditRolesModal";
@@ -34,9 +34,8 @@ export default function AdminUsers() {
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
-  const [showEditRoles, setShowEditRoles] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [userAction, setUserAction] = useState<ConfirmAction | null>(null);
 
   const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
 
@@ -92,7 +91,7 @@ export default function AdminUsers() {
           dispatch(setUser(updatedUser));
         }
       }
-      setShowEditRoles(false);
+      setUserAction(null);
     } catch (error) {
       console.error("Error updating user roles(api/admin/roles)", error);
     }
@@ -137,8 +136,8 @@ export default function AdminUsers() {
       const res = await deleteUser_Admin({ userId: selectedUser?.id });
       if (res.status === 200) {
         fetchUsers();
-        setShowDelete(false);
         setSelectedUser(null);
+        setUserAction(null);
       }
     } catch (e) {
       console.error("Error deleting user", e);
@@ -178,15 +177,16 @@ export default function AdminUsers() {
               const canDelete = canAdminDeleteUser(user);
               return (
                 <UserActionsMenu
+                  actions={[
+                    { key: "edit", label: "Edit roles" },
+                    { key: "delete", label: "Delete user" },
+                  ]}
+                  onAction={(action) => {
+                    setSelectedUser(user);
+                    setUserAction(action);
+                  }}
+                  user={user}
                   canDelete={canDelete}
-                  onEdit={() => {
-                    setSelectedUser(user);
-                    setShowEditRoles(true);
-                  }}
-                  onDelete={() => {
-                    setSelectedUser(user);
-                    setShowDelete(true);
-                  }}
                 />
               );
             }}
@@ -194,17 +194,17 @@ export default function AdminUsers() {
         )}
       </div>
 
-      {showEditRoles && selectedUser && (
+      {userAction === "edit" && selectedUser && (
         <EditRolesModal
           user={selectedUser}
-          onClose={() => setShowEditRoles(false)}
+          onClose={() => setUserAction(null)}
           onSave={updateRoles}
         />
       )}
 
-      {showDelete && selectedUser && (
+      {userAction === "delete" && selectedUser && (
         <ConfirmationDialog
-          open={showDelete}
+          open={userAction === "delete"}
           action="delete"
           entity="user"
           details={
@@ -213,7 +213,7 @@ export default function AdminUsers() {
               <div className="opacity-70">{selectedUser.email}</div>
             </>
           }
-          onCancel={() => setShowDelete(false)}
+          onCancel={() => setUserAction(null)}
           onConfirm={handleDeleteProfile}
         />
       )}

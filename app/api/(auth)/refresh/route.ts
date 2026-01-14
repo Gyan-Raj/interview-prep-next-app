@@ -1,4 +1,3 @@
-// app/api/(auth)/refresh/route.ts
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";

@@ -49,18 +49,9 @@ export function useAuthBootstrap() {
       try {
         let res = await me();
 
-        if (res.status === 401) {
-          // Axios: success if no throw
-          await api.post("/refresh");
-          res = await me();
-        }
-
-        if (res.status === 200) {
-          const roleName = res.data.activeRole.name as RoleOps;
-
-          dispatch(setUser(res.data));
-          router.replace(roleDashboardRoute[roleName]);
-        }
+        const roleName = res.data.activeRole.name as RoleOps;
+        dispatch(setUser(res.data));
+        router.replace(roleDashboardRoute[roleName]);
       } catch (err) {
         // silently fail → user remains logged out
         console.error("Auth bootstrap failed", err);

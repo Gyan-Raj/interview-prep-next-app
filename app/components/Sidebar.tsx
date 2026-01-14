@@ -59,7 +59,7 @@ export default function Sidebar({ role, collapsed, onToggle }: Props) {
       <div className="flex justify-end p-2 relative">
         <button
           onClick={onToggle}
-          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-accent-strong) rounded-full`}
+          className={`p-1 absolute border-[0.5px] h-7 w-7 -right-3 top-0 transition bg-(--color-panel) hover:bg-(--color-accent) rounded-full`}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>

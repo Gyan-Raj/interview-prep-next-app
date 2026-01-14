@@ -55,7 +55,7 @@ export default function FilterOptionsPanel({ filter }: Props) {
         return (
           <label
             key={opt.id}
-            className="flex items-center gap-2 text-sm"
+            className="max-w-fit cursor-pointer flex items-center gap-2 text-sm"
             style={{ opacity: isAllSelected ? 0.5 : 1 }}
           >
             <input

@@ -21,7 +21,6 @@ export default function FiltersMenu({ filters }: Props) {
   });
 
   const activeFilter = filters.find((f) => f.key === activeKey);
-  console.log(activeFilter, "activeFilter");
 
   return (
     <div ref={containerRef} className="relative">
@@ -56,16 +55,13 @@ export default function FiltersMenu({ filters }: Props) {
             </div>
           )}
           {/* LEFT: Filter Categories */}
-          <div
-            className="w-36 p-2 border-r overflow-y-auto"
-            style={{ maxHeight: 320 }}
-          >
+          <div className="w-36 p-2 overflow-y-auto" style={{ maxHeight: 320 }}>
             {filters.map((filter) => (
               <div
                 key={filter.key}
                 onMouseEnter={() => setActiveKey(filter.key)}
                 className={`px-2 py-2 text-xs cursor-pointer flex items-center justify-between ${
-                  activeKey === filter.key ? "bg-(--color-hover)" : ""
+                  activeKey === filter.key ? "bg-(--color-accent)" : ""
                 }`}
               >
                 <div className="flex items-center gap-2">

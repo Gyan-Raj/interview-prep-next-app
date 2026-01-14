@@ -115,8 +115,8 @@ export default function Navbar() {
                       <div
                         className={`${
                           isActive
-                            ? "bg-(--color-border)"
-                            : "hover:bg-(--color-hover)"
+                            ? "transparent"
+                            : "hover:bg-(--color-accent)"
                         }`}
                         key={role.id}
                       >
@@ -127,7 +127,7 @@ export default function Navbar() {
                             handleSwitchRole(role.id);
                             setRoleModalOpen(false);
                           }}
-                          className={`block w-full px-3 py-2 text-left text-sm transition-colors disabled:opacity-60`}
+                          className={`block w-full px-3 py-2 text-left text-sm transition-colors disabled:opacity-60 hover:bg-(--color-hover)`}
                         >
                           {toSentenceCase(role.name)}
                         </button>

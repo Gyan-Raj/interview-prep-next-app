@@ -76,6 +76,24 @@ export default function SubmissionActionsMenu({
                     ? "1px solid var(--color-border)"
                     : undefined,
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "var(--color-accent)";
+                e.currentTarget.style.borderRadius =
+                  actions.length === 1
+                    ? "var(--radius-card)"
+                    : index < actions.length - 1
+                    ? "var(--radius-card) var(--radius-card) 0 0"
+                    : "0 0 var(--radius-card) var(--radius-card)";
+                e.currentTarget.style.borderBottom =
+                  actions.length === 1
+                    ? "default"
+                    : index < actions.length - 1
+                    ? "1px solid var(--color-border)"
+                    : "none";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
             >
               {action.label}
             </button>

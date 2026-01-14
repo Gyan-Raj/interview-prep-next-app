@@ -106,13 +106,6 @@ function Questions() {
   const questionsCache = useRef<Map<string, QuestionRow[]>>(new Map());
 
   async function fetchQuestions() {
-    console.log("Fetching questions with:", {
-      debouncedQuery,
-      debouncedRoles,
-      debouncedCompanies,
-      debouncedRounds,
-    });
-
     const cacheKey = JSON.stringify({
       q: debouncedQuery,
       r: debouncedRoles,

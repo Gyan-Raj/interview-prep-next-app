@@ -14,7 +14,7 @@ export default async function ProtectedLayout({
 }: Props) {
   const user = await getAuthUser();
 
-  if (!user || !user.activeRole) redirect("/");
+  if (!user || !user.activeRole) return ;
   if (!allowedRoles.includes(user.activeRole.name)) notFound();
 
   return (

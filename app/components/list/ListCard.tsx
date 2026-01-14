@@ -39,12 +39,28 @@ export default function ListCard<T extends ListCardItem>({
       }}
     >
       <div
-        className="relative flex items-start justify-between p-4 cursor-pointer hover:bg-muted"
-        onClick={() => onCardClick?.(item)}
+        className={`relative flex items-start justify-between p-4 hover:bg-muted ${
+          item.kind === "invite" ||
+          item.kind === "user" ||
+          (item.kind === "submission" &&
+            item.data.status === "DRAFT" &&
+            item.data.resource)
+            ? ""
+            : "cursor-pointer"
+        }`}
+        onClick={() => {
+          if (
+            item.kind === "submission" &&
+            item.data.status === "DRAFT" &&
+            item.data.resource
+          ) {
+            return;
+          } else {
+            onCardClick?.(item);
+          }
+        }}
       >
-        {badge && (
-          <div className="absolute top-[-3.5] right-[-0.5]">{badge}</div>
-        )}
+        {badge && badge}
 
         <div className="space-y-1 pr-24">
           <p className="font-medium">

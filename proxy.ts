@@ -1,8 +1,5 @@
 // proxy.ts
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
-const SECRET_KEY = process.env.SECRET_KEY!;
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -17,18 +14,13 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Require presence of access token
-  const token = req.cookies.get("accessToken")?.value;
+  // 2️⃣ Require presence of any of the token
+  const accessToken = req.cookies.get("accessToken")?.value;
+  const refreshToken = req.cookies.get("refreshToken")?.value;
 
-  // Truly logged out (no token at all)
-  if (!token) {
+  // Truly logged out → no refresh possible (no token at all)
+  if (!accessToken && !refreshToken) {
     return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  try {
-    jwt.verify(token, SECRET_KEY);
-  } catch {
-    // intentionally ignore
   }
 
   return NextResponse.next();
