@@ -28,8 +28,6 @@ type RoleOption = {
 
 export default function ResourceManagerUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [listLoading, setListLoading] = useState(false);
 
   const [query, setQuery] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -40,6 +38,7 @@ export default function ResourceManagerUsers() {
   const [userAction, setUserAction] = useState<ConfirmAction | null>(null);
 
   const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const debouncedQuery = useDebounce(query, 400);
 
@@ -52,12 +51,7 @@ export default function ResourceManagerUsers() {
   }));
 
   async function fetchUsers(isInitial = false) {
-    if (isInitial) {
-      setInitialLoading(true);
-    } else {
-      setListLoading(true);
-    }
-
+    setIsLoading(true);
     try {
       const res = await getUsers_ResourceManager({
         searchText: debouncedQuery,
@@ -73,13 +67,10 @@ export default function ResourceManagerUsers() {
     } catch (e) {
       console.error("Error fetching users", e);
     } finally {
-      if (isInitial) {
-        setInitialLoading(false);
-      } else {
-        setListLoading(false);
-      }
+      setIsLoading(false);
     }
   }
+  console.log(isLoading, "isLoading");
 
   const debouncedRoleIds = useDebounce(selectedRoleIds, 400);
 
@@ -194,29 +185,28 @@ export default function ResourceManagerUsers() {
 
       {/* Users List */}
       <div style={{ position: "relative" }}>
-        {!listLoading && (
-          <UsersList
-            users={users}
-            renderActions={(user) => {
-              const canDelete = canRMDeleteUser(user);
+        <UsersList
+          users={users}
+          renderActions={(user) => {
+            const canDelete = canRMDeleteUser(user);
 
-              return (
-                <UserActionsMenu
-                  actions={[
-                    { key: "edit", label: "Edit roles" },
-                    { key: "delete", label: "Delete user" },
-                  ]}
-                  onAction={(action) => {
-                    setSelectedUser(user);
-                    setUserAction(action);
-                  }}
-                  user={user}
-                  canDelete={canDelete}
-                />
-              );
-            }}
-          />
-        )}
+            return (
+              <UserActionsMenu
+                actions={[
+                  { key: "edit", label: "Edit roles" },
+                  { key: "delete", label: "Delete user" },
+                ]}
+                onAction={(action) => {
+                  setSelectedUser(user);
+                  setUserAction(action);
+                }}
+                user={user}
+                canDelete={canDelete}
+              />
+            );
+          }}
+          isLoading={isLoading}
+        />
       </div>
 
       {userAction === "edit" && selectedUser && (

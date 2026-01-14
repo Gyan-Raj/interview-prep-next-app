@@ -8,13 +8,15 @@ export default function UsersList({
   renderActions,
   onItemClick,
   emptyMessage = "No users found.",
+  isLoading = false,
 }: {
   users: UserRow[];
   renderActions: (user: UserRow) => React.ReactNode;
   onItemClick?: (user: UserRow) => void;
   emptyMessage?: string;
+  isLoading?: boolean;
 }) {
-  if (users.length === 0) {
+  if (!isLoading && users.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
   }
 
@@ -48,6 +50,7 @@ export default function UsersList({
           onItemClick?.(item.data);
         }
       }}
+      loading={isLoading}
     />
   );
 }

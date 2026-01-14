@@ -25,7 +25,7 @@ const submissionStatusOptions = SUBMISSION_STATUS_CONFIG.map((s) => ({
 
 export default function ResourceSubmissions() {
   const [submissions, setSubmissions] = useState<ResourceSubmissionRow[]>([]);
-  const [listLoading, setListLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const [query, setQuery] = useState("");
@@ -42,7 +42,7 @@ export default function ResourceSubmissions() {
   );
 
   async function fetchAllMySubmissions() {
-    setListLoading(true);
+    setIsLoading(true);
     try {
       const res = await getMySubmissions_Resource({
         searchText: debouncedQuery,
@@ -58,7 +58,7 @@ export default function ResourceSubmissions() {
     } catch (e) {
       console.error("Error fetching submissions", e);
     } finally {
-      setListLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -96,6 +96,8 @@ export default function ResourceSubmissions() {
     }
   }, [debouncedQuery, debouncedSubmissionStatuses]);
 
+  console.log(isLoading, "isLoading:RS");
+
   return (
     <div className="space-y-6">
       {/* Toolbar */}
@@ -112,41 +114,40 @@ export default function ResourceSubmissions() {
 
       {/* Submissions List */}
       <div style={{ position: "relative" }}>
-        {!listLoading && (
-          <SubmissionsList
-            submissions={submissions}
-            renderActions={(submission) => {
-              const actions: { key: ConfirmAction; label: string }[] = [];
+        <SubmissionsList
+          submissions={submissions}
+          renderActions={(submission) => {
+            const actions: { key: ConfirmAction; label: string }[] = [];
 
-              if (
-                submission.status === "DRAFT" ||
-                submission.status === "REJECTED"
-              ) {
-                actions.push({ key: "edit", label: "Edit" });
-              }
-
-              if (submission.status === "DRAFT" && !submission.submittedAt) {
-                actions.push({ key: "submit", label: "Submit" });
-              }
-
-              if (actions.length === 0) return null;
-
-              return (
-                <SubmissionActionsMenu
-                  actions={actions}
-                  onAction={(action) => {
-                    router.push(
-                      `/resource/submissions/${submission.submissionId}`
-                    );
-                  }}
-                />
-              );
-            }}
-            onItemClick={(submission) =>
-              router.push(`/resource/submissions/${submission.submissionId}`)
+            if (
+              submission.status === "DRAFT" ||
+              submission.status === "REJECTED"
+            ) {
+              actions.push({ key: "edit", label: "Edit" });
             }
-          />
-        )}
+
+            if (submission.status === "DRAFT" && !submission.submittedAt) {
+              actions.push({ key: "submit", label: "Submit" });
+            }
+
+            if (actions.length === 0) return null;
+
+            return (
+              <SubmissionActionsMenu
+                actions={actions}
+                onAction={(action) => {
+                  router.push(
+                    `/resource/submissions/${submission.submissionId}`
+                  );
+                }}
+              />
+            );
+          }}
+          onItemClick={(submission) =>
+            router.push(`/resource/submissions/${submission.submissionId}`)
+          }
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

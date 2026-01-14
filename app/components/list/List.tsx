@@ -26,6 +26,8 @@ export default function List<T extends ListCardItem>({
 
   onItemClick?: (item: T) => void;
 }) {
+  console.log(loading, "loading:List");
+
   if (loading) {
     return (
       <div className="space-y-3">

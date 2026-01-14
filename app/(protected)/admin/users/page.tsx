@@ -28,7 +28,7 @@ type RoleOption = {
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [listLoading, setListLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [query, setQuery] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -51,7 +51,7 @@ export default function AdminUsers() {
   }));
 
   async function fetchUsers() {
-    setListLoading(true);
+    setIsLoading(true);
     try {
       const res = await getUsers_Admin({
         searchText: debouncedQuery,
@@ -67,7 +67,7 @@ export default function AdminUsers() {
     } catch (e) {
       console.error("Error fetching users", e);
     } finally {
-      setListLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -170,28 +170,27 @@ export default function AdminUsers() {
 
       {/* Users List */}
       <div style={{ position: "relative" }}>
-        {!listLoading && (
-          <UsersList
-            users={users}
-            renderActions={(user) => {
-              const canDelete = canAdminDeleteUser(user);
-              return (
-                <UserActionsMenu
-                  actions={[
-                    { key: "edit", label: "Edit roles" },
-                    { key: "delete", label: "Delete user" },
-                  ]}
-                  onAction={(action) => {
-                    setSelectedUser(user);
-                    setUserAction(action);
-                  }}
-                  user={user}
-                  canDelete={canDelete}
-                />
-              );
-            }}
-          />
-        )}
+        <UsersList
+          users={users}
+          renderActions={(user) => {
+            const canDelete = canAdminDeleteUser(user);
+            return (
+              <UserActionsMenu
+                actions={[
+                  { key: "edit", label: "Edit roles" },
+                  { key: "delete", label: "Delete user" },
+                ]}
+                onAction={(action) => {
+                  setSelectedUser(user);
+                  setUserAction(action);
+                }}
+                user={user}
+                canDelete={canDelete}
+              />
+            );
+          }}
+          isLoading={isLoading}
+        />
       </div>
 
       {userAction === "edit" && selectedUser && (

@@ -31,7 +31,7 @@ const submissionStatusOptions = SUBMISSION_STATUS_CONFIG.map((s) => ({
 
 export default function ResourceManagerSubmissions() {
   const [submissions, setSubmissions] = useState<SubmissionRow[]>([]);
-  const [listLoading, setListLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [query, setQuery] = useState("");
 
@@ -51,7 +51,7 @@ export default function ResourceManagerSubmissions() {
   const debouncedQuery = useDebounce(query, 400);
 
   async function fetchPendingSubmissions() {
-    setListLoading(true);
+    setIsLoading(true);
 
     try {
       const res = await getSubmissions_ResourceManager({
@@ -68,7 +68,7 @@ export default function ResourceManagerSubmissions() {
     } catch (e) {
       console.error("Error fetching submissions", e);
     } finally {
-      setListLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -162,45 +162,44 @@ export default function ResourceManagerSubmissions() {
 
       {/* Submissions List */}
       <div style={{ position: "relative" }}>
-        {!listLoading && (
-          <SubmissionsList
-            submissions={submissions}
-            renderActions={(submission) => {
-              const actions: { key: EditActionTypes; label: string }[] = [];
+        <SubmissionsList
+          submissions={submissions}
+          renderActions={(submission) => {
+            const actions: { key: EditActionTypes; label: string }[] = [];
 
-              if (
-                submission.status === "PENDING_REVIEW" &&
-                submission.versionNumber !== 1
-              ) {
-                actions.push({ key: "approved", label: "Approve" });
-                actions.push({ key: "rejected", label: "Reject" });
-              }
-
-              if (
-                submission.status === "DRAFT" ||
-                (submission.versionNumber === 1 && !submission.submittedAt)
-              ) {
-                actions.push({ key: "delete", label: "Delete" });
-              }
-
-              return (
-                <SubmissionActionsMenu
-                  actions={actions}
-                  onAction={(action) => {
-                    setSelectedSubmissionVersion(submission);
-                    setEditAction(action as EditActionTypes);
-                    setShowConfirmDialog(true);
-                  }}
-                />
-              );
-            }}
-            onItemClick={(submission) =>
-              router.push(
-                `/resource-manager/submissions/${submission.submissionId}`
-              )
+            if (
+              submission.status === "PENDING_REVIEW" &&
+              submission.versionNumber !== 1
+            ) {
+              actions.push({ key: "approved", label: "Approve" });
+              actions.push({ key: "rejected", label: "Reject" });
             }
-          />
-        )}
+
+            if (
+              submission.status === "DRAFT" ||
+              (submission.versionNumber === 1 && !submission.submittedAt)
+            ) {
+              actions.push({ key: "delete", label: "Delete" });
+            }
+
+            return (
+              <SubmissionActionsMenu
+                actions={actions}
+                onAction={(action) => {
+                  setSelectedSubmissionVersion(submission);
+                  setEditAction(action as EditActionTypes);
+                  setShowConfirmDialog(true);
+                }}
+              />
+            );
+          }}
+          onItemClick={(submission) =>
+            router.push(
+              `/resource-manager/submissions/${submission.submissionId}`
+            )
+          }
+          isLoading={isLoading}
+        />
       </div>
 
       {showConfirmDialog && selectedSubmissionVersion && (
