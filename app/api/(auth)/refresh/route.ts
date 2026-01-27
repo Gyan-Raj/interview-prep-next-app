@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/db/prisma";
 
@@ -28,16 +29,20 @@ export async function POST() {
     return NextResponse.json(null, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: matchedSession.userId },
+  // 🔁 ROTATE REFRESH TOKEN
+  const newRawRefreshToken = crypto.randomBytes(48).toString("hex");
+  const newHashedRefreshToken = await bcrypt.hash(newRawRefreshToken, 10);
+
+  await prisma.session.update({
+    where: { id: matchedSession.id },
+    data: {
+      refreshToken: newHashedRefreshToken,
+      updatedAt: new Date(),
+    },
   });
 
-  if (!user) {
-    return NextResponse.json(null, { status: 401 });
-  }
-
-  // ✅ IDENTITY-ONLY TOKEN
-  const accessToken = jwt.sign({ sub: user.id }, SECRET_KEY, {
+  // Issue new access token
+  const accessToken = jwt.sign({ sub: matchedSession.userId }, SECRET_KEY, {
     expiresIn: "15m",
   });
 
@@ -45,8 +50,16 @@ export async function POST() {
   response.cookies.set("accessToken", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 15 * 60,
+    path: "/",
+  });
+
+  response.cookies.set("refreshToken", newRawRefreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: matchedSession.expiresAt,
     path: "/",
   });
 

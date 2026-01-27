@@ -1,5 +1,5 @@
 import { getAuthUser } from "@/app/lib/auth";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/app/db/prisma";
 import ResourceDashboardClient from "./ResourceDashboardClient";
 import { SubmissionVersionStatus } from "@prisma/client";
@@ -8,7 +8,11 @@ import { SubmissionRow } from "@/app/types";
 export default async function ResourceDashboard() {
   const user = await getAuthUser();
 
-  if (!user || user.activeRole?.name !== "RESOURCE") {
+  if (!user || !user.activeRole) {
+    redirect("/");
+  }
+
+  if (user.activeRole?.name !== "RESOURCE") {
     notFound();
   }
 

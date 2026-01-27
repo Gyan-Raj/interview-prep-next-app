@@ -14,12 +14,10 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ Require presence of any of the token
-  const accessToken = req.cookies.get("accessToken")?.value;
   const refreshToken = req.cookies.get("refreshToken")?.value;
 
   // Truly logged out → no refresh possible (no token at all)
-  if (!accessToken && !refreshToken) {
+  if (!refreshToken) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
