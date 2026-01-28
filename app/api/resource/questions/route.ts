@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);

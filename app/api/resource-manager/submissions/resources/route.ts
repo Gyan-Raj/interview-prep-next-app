@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // 2️⃣ Parse query params

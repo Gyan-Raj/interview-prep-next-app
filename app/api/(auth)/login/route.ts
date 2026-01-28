@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   if (!email || !password) {
     return NextResponse.json(
       { message: "Missing credentials" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (!user || !user.password) {
     return NextResponse.json(
       { message: "Invalid credentials" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (!isValid) {
     return NextResponse.json(
       { message: "Invalid credentials" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
   // ✅ IDENTITY-ONLY TOKEN
   const accessToken = jwt.sign({ sub: user.id }, SECRET_KEY, {
-    expiresIn: "15m",
+    expiresIn: "60m",
   });
 
   await createSession(user.id);
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 15 * 60,
+    maxAge: 60 * 60,
     path: "/",
   });
 

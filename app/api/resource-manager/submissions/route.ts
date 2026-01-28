@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   // 1️⃣ Auth
   const authUser = await getAuthUser();
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // 2️⃣ Query params
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // 2️⃣ Parse & validate body
@@ -273,7 +273,7 @@ export async function PATCH(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   const { submissionVersionId, action, reason } = (await req.json()) as {

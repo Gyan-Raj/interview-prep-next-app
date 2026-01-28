@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (!userRole) {
     return NextResponse.json(
       { message: "Role not assigned to user" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
   // 4️⃣ Issue a NEW ACCESS TOKEN (identity only)
   const accessToken = jwt.sign({ sub: authUser.id }, SECRET_KEY, {
-    expiresIn: "15m",
+    expiresIn: "60m",
   });
 
   const response = NextResponse.json({ success: true }, { status: 200 });
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 15 * 60,
+    maxAge: 60 * 60,
   });
 
   return response;

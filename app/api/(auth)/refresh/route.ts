@@ -26,7 +26,7 @@ export async function POST() {
   }
 
   if (!matchedSession) {
-    return NextResponse.json(null, { status: 401 });
+    return NextResponse.json(null, { status: 404 });
   }
 
   // 🔁 ROTATE REFRESH TOKEN
@@ -43,7 +43,7 @@ export async function POST() {
 
   // Issue new access token
   const accessToken = jwt.sign({ sub: matchedSession.userId }, SECRET_KEY, {
-    expiresIn: "15m",
+    expiresIn: "60m",
   });
 
   const response = NextResponse.json({ success: true });
@@ -51,7 +51,7 @@ export async function POST() {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 15 * 60,
+    maxAge: 60 * 60,
     path: "/",
   });
 

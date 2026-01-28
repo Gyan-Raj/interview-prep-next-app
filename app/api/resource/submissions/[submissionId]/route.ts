@@ -9,7 +9,7 @@ export async function GET(
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // ✅ MUST await params

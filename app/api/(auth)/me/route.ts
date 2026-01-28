@@ -17,7 +17,7 @@ export async function GET() {
   });
 
   if (!user || !user.activeRole) {
-    return NextResponse.json(null, { status: 401 });
+    return NextResponse.json(null, { status: 404 });
   }
 
   return NextResponse.json({

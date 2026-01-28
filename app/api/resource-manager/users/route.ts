@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -91,7 +91,7 @@ export async function DELETE(req: Request) {
   // 1️⃣ Auth check (RESOURCE MANAGER only)
   const authUser = await getAuthUser();
   if (!authUser || authUser.activeRole?.name !== "RESOURCE MANAGER") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // 2️⃣ Parse query param

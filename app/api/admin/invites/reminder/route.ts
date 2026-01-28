@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   // 1️⃣ Auth check (ADMIN only)
   const authUser = await getAuthUser();
   if (!authUser || authUser.activeRole?.name !== "ADMIN") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   // 2️⃣ Parse body

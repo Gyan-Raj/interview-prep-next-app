@@ -32,9 +32,19 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [roleModalOpen]);
-  const handleNavigate = () => {
-    const role = user?.activeRole?.name?.toLowerCase();
-    if (role) router.push(`/${role}/dashboard`);
+  const handleNavigate = async () => {
+    try {
+      const meRes = await me();
+      if (meRes.status !== 200) return;
+
+      const user = meRes.data;
+      dispatch(setUser(user));
+
+      const roleName = user.activeRole.name as RoleOps;
+      router.replace(roleDashboardRoute[roleName]);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   async function handleSwitchRole(roleId: string) {
@@ -114,9 +124,7 @@ export default function Navbar() {
                     return (
                       <div
                         className={`${
-                          isActive
-                            ? "transparent"
-                            : "hover:bg-(--color-accent)"
+                          isActive ? "transparent" : "hover:bg-(--color-accent)"
                         }`}
                         key={role.id}
                       >

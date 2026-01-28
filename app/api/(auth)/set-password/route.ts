@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (!token) {
     return NextResponse.json(
       { message: "Invalid or missing invite token" },
-      { status: 401 }
+      { status: 404 }
     );
   }
 

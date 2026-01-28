@@ -1,12 +1,16 @@
 import { getAuthUser } from "@/app/lib/auth";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/app/db/prisma";
 import ResourceManagerDashboardClient from "./ResourceManagerDashboardClient";
 
 export default async function ResourceManagerDashboard() {
   const user = await getAuthUser();
 
-  if (!user || user.activeRole?.name !== "RESOURCE MANAGER") {
+  if (!user || !user.activeRole) {
+    redirect("/");
+  }
+
+  if (user.activeRole?.name !== "RESOURCE MANAGER") {
     notFound();
   }
 

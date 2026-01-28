@@ -1,12 +1,16 @@
 import { getAuthUser } from "@/app/lib/auth";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/app/db/prisma";
 import AdminDashboardClient from "./AdminDashboardClient";
 
 export default async function AdminDashboard() {
   const user = await getAuthUser();
 
-  if (!user || user?.activeRole?.name !== "ADMIN") {
+  if (!user || !user.activeRole) {
+    redirect("/");
+  }
+
+  if (user.activeRole?.name !== "ADMIN") {
     notFound();
   }
 

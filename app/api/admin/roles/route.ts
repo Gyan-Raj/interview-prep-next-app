@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   // 1️⃣ Auth check
   const authUser = await getAuthUser();
   if (!authUser || authUser.activeRole?.name !== "ADMIN") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
   const { userId, roleIds } = (await req.json()) as Payload;
@@ -141,7 +141,7 @@ export async function GET(req: Request) {
   const authUser = await getAuthUser();
 
   if (!authUser || authUser.activeRole?.name !== "ADMIN") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
   const roles = await prisma.role.findMany({
     select: { id: true, name: true },
