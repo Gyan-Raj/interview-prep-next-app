@@ -2,6 +2,7 @@ import api from "@/app/api";
 import {
   ChangePasswordTypes,
   ConfirmAction,
+  DownloadSubmissionsParams,
   LoginType,
   RequestSubmissionPayload,
   SendInvite_Admin_Types,
@@ -243,4 +244,32 @@ export async function getAllRoles() {
 }
 export async function getAllRounds() {
   return api.get("/resource/submissions/interview-rounds");
+}
+
+export async function downloadSubmissions_Resource(
+  params: DownloadSubmissionsParams,
+) {
+  const isSingle = Boolean(params.submissionId);
+
+  return api.post(
+    "/resource/submissions/export",
+    {
+      mode: isSingle ? "SINGLE" : "FILTERED",
+
+      ...(isSingle
+        ? {
+            submissionId: params.submissionId!,
+          }
+        : {
+            searchText: params.searchText,
+            roleIds: params.roleIds,
+            companyIds: params.companyIds,
+            roundIds: params.roundIds,
+            dateRange: params.dateRange,
+          }),
+    },
+    {
+      responseType: "blob",
+    },
+  );
 }

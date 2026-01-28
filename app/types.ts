@@ -191,7 +191,7 @@ export type ConfirmAction =
   | "send-again"
   | "reminder"
   | "cancel"
-  | "download"
+  | "download";
 
 export type ConfirmEntity = "user" | "invite" | "submission" | "item"; // fallback / generic
 
@@ -213,4 +213,14 @@ export type FilterConfig = {
   isAllSelected: boolean;
   onToggle: (id: string) => void;
   onSelectAll: () => void;
+};
+
+export type DownloadSubmissionsParams = {
+  submissionId?: string;
+
+  searchText?: string;
+  roleIds?: string[];
+  companyIds?: string[];
+  roundIds?: string[];
+  dateRange?: [string, string];
 };

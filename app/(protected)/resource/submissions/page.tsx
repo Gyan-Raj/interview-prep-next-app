@@ -9,12 +9,14 @@ import {
   getAllRoles,
   getAllRounds,
   getSubmissions_Resource,
+  downloadSubmissions_Resource,
 } from "@/app/actions";
 import {
   ConfirmAction,
   FilterConfig,
   QuestionRow,
   ResourceSubmissionRow,
+  SubmissionRow,
 } from "@/app/types";
 import QuestionsList from "@/app/components/questions/QuestionsList";
 import { useRouter } from "next/navigation";
@@ -121,6 +123,9 @@ function AllApprovedResourceSubmissions() {
         searchText: debouncedQuery,
         submissionStatuses: ["APPROVED"],
         isSelf: false,
+        // roleIds: debouncedRoles,
+        // companyIds: debouncedCompanies,
+        // roundIds: debouncedRounds,
       });
 
       if (res.status === 200) {
@@ -205,6 +210,54 @@ function AllApprovedResourceSubmissions() {
 
   /* ---------------- Render ---------------- */
 
+  function triggerFileDownload(blob: Blob, filename: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  const handleDownloadAllSubmissions = async () => {
+    try {
+      const res = await downloadSubmissions_Resource({
+        searchText: query || undefined,
+        roleIds: selectedRoles,
+        companyIds: selectedCompanies,
+        roundIds: selectedRounds,
+      });
+
+      triggerFileDownload(
+        res.data,
+        `IR questions ${new Date()
+          .toLocaleDateString("en-GB")
+          .replace(/\//g, "-")}.pdf`,
+      );
+    } catch (error) {
+      console.error("Failed to download submissions", error);
+    }
+  };
+
+  const handleDownloadSubmissionById = async (submission: SubmissionRow) => {
+    try {
+      const res = await downloadSubmissions_Resource({
+        submissionId: submission.submissionId,
+      });
+
+      triggerFileDownload(
+        res.data,
+        `IR questions ${new Date()
+          .toLocaleDateString("en-GB")
+          .replace(/\//g, "-")}.pdf`,
+      );
+    } catch (error) {
+      console.error("Failed to download submission", error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Toolbar */}
@@ -218,7 +271,10 @@ function AllApprovedResourceSubmissions() {
         }
         right={
           <>
-            <DownloadButton hoverText="Download All" />
+            <DownloadButton
+              hoverText="Download All"
+              onClick={handleDownloadAllSubmissions}
+            />
             <FiltersMenu filters={filtersConfig} />
           </>
         }
@@ -233,7 +289,11 @@ function AllApprovedResourceSubmissions() {
           }
           isLoading={isLoading}
           renderActions={(submission) => {
-            return <DownloadButton />;
+            return (
+              <DownloadButton
+                onClick={() => handleDownloadSubmissionById(submission)}
+              />
+            );
           }}
           kind="submission"
         />
