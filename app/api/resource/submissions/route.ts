@@ -18,6 +18,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const searchText = searchParams.get("searchText")?.trim();
   const statusParam = searchParams.get("submissionStatuses");
+  const isSelf = searchParams.get("isSelf") === "true";
+  console.log(isSelf, "isSelf");
+  console.log(typeof isSelf, "typeof isSelf");
 
   const statuses = statusParam
     ? statusParam
@@ -25,16 +28,18 @@ export async function GET(req: Request) {
         .map((s) => s.trim())
         .filter((s): s is SubmissionVersionStatus =>
           Object.values(SubmissionVersionStatus).includes(
-            s as SubmissionVersionStatus
-          )
+            s as SubmissionVersionStatus,
+          ),
         )
     : undefined;
-
-  const where: any = {
-    interview: {
-      resourceId: authUser.id,
-    },
-  };
+  let where: any = {};
+  if (isSelf) {
+    where = {
+      interview: {
+        resourceId: authUser.id,
+      },
+    };
+  }
 
   if (searchText) {
     where.OR = [
@@ -64,6 +69,7 @@ export async function GET(req: Request) {
           company: true,
           role: true,
           round: true,
+          resource: !isSelf,
         },
       },
       versions: {
@@ -85,7 +91,7 @@ export async function GET(req: Request) {
         submissionVersionId: latest.id,
         versionNumber: latest.versionNumber,
         submittedAt: latest.submittedAt,
-        status: latest.status,
+        status: isSelf ? latest.status : null,
         interview: {
           id: s.interview.id,
           companyName: s.interview.company.name,
@@ -93,6 +99,14 @@ export async function GET(req: Request) {
           round: s.interview.round.name,
           interviewDate: s.interview.interviewDate.toISOString(),
         },
+        resource: isSelf
+          ? null
+          : {
+              id: s.interview.resource.id,
+              name: s.interview.resource.name,
+              email: s.interview.resource.email,
+              phone: s.interview.resource.phone,
+            },
       };
     });
 
@@ -115,7 +129,7 @@ export async function PATCH(req: Request) {
   if (!submissionId || !action || !questions || questions.length === 0) {
     return NextResponse.json(
       { message: "submissionId, action and questions are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -134,7 +148,7 @@ export async function PATCH(req: Request) {
   if (!submission) {
     return NextResponse.json(
       { message: "Submission not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -148,7 +162,7 @@ export async function PATCH(req: Request) {
   if (!latestVersion) {
     return NextResponse.json(
       { message: "Submission version not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -157,7 +171,7 @@ export async function PATCH(req: Request) {
     if (latestVersion.status !== "DRAFT") {
       return NextResponse.json(
         { message: "Only DRAFT submissions can be saved" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -181,7 +195,7 @@ export async function PATCH(req: Request) {
     if (latestVersion.status !== "DRAFT") {
       return NextResponse.json(
         { message: "Only DRAFT submissions can be submitted" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -202,7 +216,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(
       { submissionVersionId: newVersion.id },
-      { status: 200 }
+      { status: 200 },
     );
   }
 

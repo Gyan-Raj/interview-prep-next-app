@@ -26,7 +26,9 @@ export async function acceptInvite(token: string) {
     params: { token },
   });
 }
-export async function setPasswordAfterAcceptingInvite(payload: SetPasswordTypes) {
+export async function setPasswordAfterAcceptingInvite(
+  payload: SetPasswordTypes,
+) {
   return api.post("/change-password", payload);
 }
 export async function deleteProfile() {
@@ -90,7 +92,7 @@ export async function getAllRoles_ResourceManager(params?: {
   });
 }
 export async function sendInvite_ResourceManager(
-  payload: SendInvite_Admin_Types
+  payload: SendInvite_Admin_Types,
 ) {
   return api.post("/resource-manager/invites/send", payload);
 }
@@ -113,13 +115,13 @@ export async function getUsers_ResourceManager(params?: {
   });
 }
 export async function updateRoles_ResourceManager(
-  payload: UpdateRoles_Admin_Types
+  payload: UpdateRoles_Admin_Types,
 ) {
   return api.post("/resource-manager/roles", payload);
 }
 export async function inviteAction_ResourceManager(
   id: string,
-  action: ConfirmAction
+  action: ConfirmAction,
 ) {
   if (action === "cancel" || action === "delete")
     return api.post("/resource-manager/invites/cancel", { id });
@@ -142,11 +144,11 @@ export async function getSubmissions_ResourceManager(params?: {
         searchText: params?.searchText, // also fix key name
         submissionStatuses: params?.submissionStatuses?.join(","),
       },
-    }
+    },
   );
 }
 export async function updateSubmission_ResourceManager(
-  payload: UpdateSubmissionStatus_ResourceManager_Types
+  payload: UpdateSubmissionStatus_ResourceManager_Types,
 ) {
   return api.patch("/resource-manager/submissions", payload);
 }
@@ -184,16 +186,17 @@ export async function getInterviewRounds_ResourceManager(params?: {
   });
 }
 export async function postRequestSubmission_ResourceManager(
-  payload: RequestSubmissionPayload
+  payload: RequestSubmissionPayload,
 ) {
   return api.post("/resource-manager/submissions", payload);
 }
 
 /** Resource */
-export async function getMySubmissions_Resource(params?: {
+export async function getSubmissions_Resource(params?: {
   searchText?: string;
   submissionStatuses?: string[];
   submissionId?: string;
+  isSelf?: boolean;
 }) {
   return api.get(
     params?.submissionId
@@ -203,12 +206,13 @@ export async function getMySubmissions_Resource(params?: {
       params: {
         searchText: params?.searchText, // also fix key name
         submissionStatuses: params?.submissionStatuses?.join(","),
+        isSelf: params?.isSelf,
       },
-    }
+    },
   );
 }
 export async function updateSubmissionDetail_Resource(
-  payload: UpdateSubmissionDetail_Resource_Types
+  payload: UpdateSubmissionDetail_Resource_Types,
 ) {
   return api.patch("/resource/submissions", payload);
 }

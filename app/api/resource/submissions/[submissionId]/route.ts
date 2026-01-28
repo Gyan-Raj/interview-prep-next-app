@@ -4,7 +4,7 @@ import { prisma } from "@/app/db/prisma";
 
 export async function GET(
   req: Request,
-  context: { params: Promise<{ submissionId: string }> }
+  context: { params: Promise<{ submissionId: string; isSelf: boolean }> },
 ) {
   const authUser = await getAuthUser();
 
@@ -15,12 +15,17 @@ export async function GET(
   // ✅ MUST await params
   const { submissionId } = await context.params;
 
+  const { searchParams } = new URL(req.url);
+  const isSelf = searchParams.get("isSelf") === "true";
+  console.log(isSelf, "isSelf");
+  console.log(typeof isSelf, "typeof isSelf");
+
   const latestVersion = await prisma.submissionVersion.findFirst({
     where: {
       submissionId, // ✅ now correctly applied
       submission: {
         interview: {
-          resourceId: authUser.id,
+          resourceId: isSelf ? authUser.id : undefined,
         },
       },
     },
@@ -33,6 +38,7 @@ export async function GET(
               company: true,
               role: true,
               round: true,
+              resource: true,
             },
           },
         },
@@ -46,7 +52,7 @@ export async function GET(
   if (!latestVersion) {
     return NextResponse.json(
       { message: "Submission not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -56,7 +62,7 @@ export async function GET(
       submissionVersionId: latestVersion.id,
       versionNumber: latestVersion.versionNumber,
       submittedAt: latestVersion.submittedAt,
-      status: latestVersion.status,
+      status: isSelf ? latestVersion.status : null,
       interview: {
         id: latestVersion.submission.interview.id,
         companyName: latestVersion.submission.interview.company.name,
@@ -70,7 +76,15 @@ export async function GET(
         question: q,
         createdAt: q.createdAt.toISOString(),
       })),
+      resource: isSelf
+        ? null
+        : {
+            id: latestVersion.submission.interview.resource.id,
+            name: latestVersion.submission.interview.resource.name,
+            email: latestVersion.submission.interview.resource.email,
+            phone: latestVersion.submission.interview.resource.phone,
+          },
     },
-    { status: 200 }
+    { status: 200 },
   );
 }

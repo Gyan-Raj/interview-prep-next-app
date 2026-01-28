@@ -74,13 +74,13 @@ export default function ResourceDashboardClient({
                   onAction={(action) => {
                     if (action === "edit") {
                       router.push(
-                        `/resource/submissions/${submission.submissionId}`
+                        `/resource/my-submissions/${submission.submissionId}`
                       );
                     }
 
                     if (action === "submit") {
                       router.push(
-                        `/resource/submissions/${submission.submissionId}`
+                        `/resource/my-submissions/${submission.submissionId}`
                       );
                     }
                   }}
@@ -88,7 +88,7 @@ export default function ResourceDashboardClient({
               );
             }}
             onItemClick={(submission) =>
-              router.push(`/resource/submissions/${submission.submissionId}`)
+              router.push(`/resource/my-submissions/${submission.submissionId}`)
             }
           />
         </div>

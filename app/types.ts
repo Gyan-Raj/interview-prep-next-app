@@ -190,7 +190,8 @@ export type ConfirmAction =
   | "submit"
   | "send-again"
   | "reminder"
-  | "cancel";
+  | "cancel"
+  | "download"
 
 export type ConfirmEntity = "user" | "invite" | "submission" | "item"; // fallback / generic
 

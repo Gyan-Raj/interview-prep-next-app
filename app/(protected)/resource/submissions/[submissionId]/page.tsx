@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-import {
-  getMySubmissions_Resource,
-  updateSubmissionDetail_Resource,
-} from "@/app/actions";
+import { getSubmissions_Resource } from "@/app/actions";
 
 import { statusBadgeClassMap } from "@/app/constants/constants";
 import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
-import { Question, SubmissionStatusKey } from "@/app/types";
+import { EditActionTypes, Question, SubmissionStatusKey } from "@/app/types";
+import ListCard from "@/app/components/list/ListCard";
+import { SubmissionRow } from "@/app/types";
+import DownloadButton from "@/app/components/DownloadButton";
 
 /* -------------------- Types -------------------- */
 
 type Interview = {
+  id?: string;
   companyName: string;
   role: string;
   round: string;
@@ -25,6 +26,12 @@ type Questions = {
   createdAt: string;
   question: Question;
 };
+type Resource = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+};
 
 type Submission = {
   interview: Interview;
@@ -34,41 +41,49 @@ type Submission = {
   submissionVersionId: string;
   submittedAt: string | null;
   versionNumber: number;
+  resource: Resource;
 };
 
-/* -------------------- Helpers -------------------- */
+export function toSubmissionRow(submission: Submission): SubmissionRow {
+  if (!submission.interview.id) {
+    throw new Error("Interview id is required for SubmissionRow");
+  }
 
-function insertNextQuestionMarker(text: string) {
-  const matches = text.match(/⟦Q\d+⟧/g);
-  const nextNumber = matches ? matches.length + 1 : 1;
-  return `${text}\n⟦Q${nextNumber}⟧ `;
-}
+  return {
+    submissionId: submission.submissionId,
+    submissionVersionId: submission.submissionVersionId,
+    status: submission.status,
+    submittedAt: submission.submittedAt,
+    versionNumber: submission.versionNumber,
 
-function questionsToDocument(questions: { text: string }[]) {
-  return questions.map((q, i) => `⟦Q${i + 1}⟧ ${q.text}`).join("\n");
-}
+    interview: {
+      id: submission.interview.id,
+      companyName: submission.interview.companyName,
+      role: submission.interview.role,
+      round: submission.interview.round,
+      interviewDate: submission.interview.interviewDate,
+    },
 
-function documentToQuestions(text: string) {
-  return text
-    .split(/⟦Q\d+⟧/)
-    .map((q) => q.trim())
-    .filter(Boolean)
-    .map((t) => ({ text: t }));
+    resource: submission.resource
+      ? {
+          id: submission.resource.id,
+          name: submission.resource.name,
+          email: submission.resource.email,
+        }
+      : undefined,
+  };
 }
 
 /* -------------------- Component -------------------- */
 
 export default function ResourceSubmissionDetailPage() {
-  const { submissionId } = useParams<{ submissionId: string }>();
+  console.log("ResourceSubmissionDetailPage");
 
+  const { submissionId } = useParams<{ submissionId: string }>();
   const [loading, setLoading] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
 
-  const [mode, setMode] = useState<"view" | "edit">("view");
-  const [documentText, setDocumentText] = useState("");
-
-  const isEditable =
-    submission?.status === "DRAFT" || submission?.status === "REJECTED";
+  const router = useRouter();
 
   /* -------------------- Fetch -------------------- */
 
@@ -77,16 +92,15 @@ export default function ResourceSubmissionDetailPage() {
 
     setLoading(true);
     try {
-      const res = await getMySubmissions_Resource({ submissionId });
+      const res = await getSubmissions_Resource({
+        submissionId,
+        isSelf: false,
+      });
+      console.log(res, "res");
 
       if (res.status === 200) {
         const data = res.data;
         setSubmission(data);
-        const questionsArr = data.questions?.map(
-          (ele: Questions) => ele.question
-        );
-        setDocumentText(questionsToDocument(questionsArr));
-        setMode("view");
       }
     } catch (error) {
       console.error("Error getting submissions", error);
@@ -99,39 +113,6 @@ export default function ResourceSubmissionDetailPage() {
     fetchSubmission();
   }, [submissionId]);
 
-  /* -------------------- Actions -------------------- */
-
-  async function handleSave(action: "save" | "submit") {
-    if (!submissionId) return;
-
-    const questions = documentToQuestions(documentText);
-
-    if (action === "submit" && questions.length === 0) return;
-
-    await updateSubmissionDetail_Resource({
-      submissionId,
-      action,
-      questions,
-    });
-
-    fetchSubmission();
-  }
-
-  function restoreDocumentFromSubmission() {
-    if (!submission) return;
-    setDocumentText(
-      questionsToDocument(submission.questions.map((q: any) => q.question ?? q))
-    );
-    setMode("view");
-  }
-
-  function handleEditorKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && e.shiftKey) {
-      e.preventDefault();
-      setDocumentText((prev) => insertNextQuestionMarker(prev));
-    }
-  }
-
   /* -------------------- Render -------------------- */
 
   if (loading || !submission) {
@@ -142,144 +123,45 @@ export default function ResourceSubmissionDetailPage() {
     <div className="h-full flex flex-col overflow-hidden">
       {/* ================= HEADER ================= */}
 
-      <div
-        style={{
-          backgroundColor: "var(--color-panel)",
-          border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--shadow-card)",
+      <ListCard
+        key={submission.submissionVersionId}
+        item={{
+          kind: "submission",
+          data: toSubmissionRow(submission),
         }}
-      >
-        <div className="relative flex items-start justify-between px-4 py-2">
-          <div className={`${statusBadgeClassMap[submission.status]}`}>
-            {toSentenceCase(submission.status)}
-          </div>
-
-          <div className="space-y-1 pr-24">
-            <p className="font-medium">
-              {[
-                submission.interview.companyName,
-                submission.interview.role,
-                submission.interview.round,
-              ].join(" · ")}
-              <span className="opacity-70 text-sm">
-                {" "}
-                · {formatDisplayDate(submission.interview.interviewDate)}
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-
+        title={`${submission.interview.companyName} · ${submission.interview.role} · ${submission.interview.round}`}
+        subtitle={formatDisplayDate(submission.interview.interviewDate)}
+        metaData={`${submission.resource?.name} · ${submission.resource?.email}`}
+        badge={null}
+        styles={{ cursor: "auto" }}
+        actions={<DownloadButton />}
+      />
       {/* ================= SCROLLABLE QUESTIONS ================= */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {/* Empty */}
-        {submission.questions.length === 0 && mode === "view" && (
+        {submission.questions.length === 0 && (
           <div className="text-sm opacity-70">No submitted questions.</div>
         )}
 
-        {/* View mode */}
-        {mode === "view" && (
-          <>
-            <div className="text-sm opacity-70 mb-2">
-              {submission?.status === "PENDING_REVIEW"
-                ? "Submitted questions"
-                : submission?.status === "REJECTED"
+        <>
+          <div className="text-sm opacity-70 mb-2">
+            {submission?.status === "PENDING_REVIEW"
+              ? "Submitted questions"
+              : submission?.status === "REJECTED"
                 ? "Rejected questions"
                 : submission?.status === "APPROVED"
-                ? "Questions"
-                : ""}
-            </div>
-            {/* <pre className="whitespace-pre-wrap text-sm rounded p-4">
-              {documentText || "—"}
-            </pre> */}
-            {mode === "view" && (
-              <ol className="list-decimal pl-5 space-y-2 text-sm">
-                {submission.questions.map((q) => (
-                  <li key={q.question.id} className="whitespace-pre-wrap">
-                    {q.question.text}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </>
-        )}
-
-        {/* Edit mode */}
-        {mode === "edit" && (
-          <div className="h-full flex flex-col">
-            {documentText.trim().length > 0 && (
-              <div className="text-xs opacity-60 mb-2">
-                Press <kbd>Shift</kbd> + <kbd>Enter</kbd> to add next question
-              </div>
-            )}
-
-            <textarea
-              value={documentText}
-              onChange={(e) => {
-                const value = e.target.value;
-
-                if (
-                  documentText.trim().length === 0 &&
-                  value.trim().length > 0 &&
-                  !value.includes("⟦Q1⟧")
-                ) {
-                  setDocumentText(`⟦Q1⟧ ${value.trim()}`);
-                } else {
-                  setDocumentText(value);
-                }
-              }}
-              onKeyDown={handleEditorKeyDown}
-              className="flex-1 border rounded p-4 resize-none overflow-y-auto focus:outline-none text-sm"
-              placeholder="Type your first question…"
-            />
+                  ? "Questions:"
+                  : ""}
           </div>
-        )}
+          <ol className="list-decimal pl-5 space-y-2 text-sm">
+            {submission.questions.map((q) => (
+              <li key={q.question.id} className="whitespace-pre-wrap">
+                {q.question.text}
+              </li>
+            ))}
+          </ol>
+        </>
       </div>
-
-      {/* ================= FOOTER ACTIONS ================= */}
-      {isEditable && (
-        <div className="px-2 py-1 flex justify-end gap-6 text-sm">
-          {mode === "view" ? (
-            <>
-              <button
-                className="btn-secondary px-4 py-2"
-                onClick={() => setMode("edit")}
-              >
-                Edit
-              </button>
-              <button
-                className="btn-primary px-4 py-2"
-                onClick={() => handleSave("submit")}
-                disabled={submission.questions.length === 0}
-              >
-                Submit
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="btn-secondary px-4 py-2"
-                onClick={restoreDocumentFromSubmission}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-secondary px-4 py-2"
-                onClick={() => handleSave("save")}
-              >
-                Save
-              </button>
-              <button
-                className="btn-primary px-4 py-2"
-                onClick={() => handleSave("submit")}
-              >
-                Submit
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }

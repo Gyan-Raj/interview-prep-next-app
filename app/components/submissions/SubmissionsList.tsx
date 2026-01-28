@@ -4,7 +4,7 @@ import { statusBadgeClassMap } from "@/app/constants/constants";
 import { SubmissionRow } from "@/app/types";
 import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
 
-function SubmissionStatusBadge({ submission }: { submission: SubmissionRow }) {
+export function SubmissionStatusBadge({ submission }: { submission: SubmissionRow }) {
   return (
     <span className={`${statusBadgeClassMap[submission.status]}`}>
       {" "}
@@ -19,12 +19,14 @@ export default function SubmissionsList({
   onItemClick,
   emptyMessage = "No submissions found.",
   isLoading = false,
+  kind = "my-submission",
 }: {
   submissions: SubmissionRow[];
   renderActions: (submission: SubmissionRow) => React.ReactNode;
   onItemClick?: (submission: SubmissionRow) => void;
   emptyMessage?: string;
   isLoading?: boolean;
+  kind?: "submission" | "my-submission";
 }) {
   if (!isLoading && submissions.length === 0) {
     return <div className="p-6 text-sm opacity-70">{emptyMessage}</div>;
@@ -33,7 +35,7 @@ export default function SubmissionsList({
   return (
     <List
       items={submissions.map((s) => ({
-        kind: "submission" as const,
+        kind: kind,
         data: s,
       }))}
       getTitle={(submission) =>
@@ -50,7 +52,7 @@ export default function SubmissionsList({
           : `${formatDisplayDate(submission.data.interview.interviewDate)}`
       }
       getBadge={(submission) =>
-        submission.kind === "submission" ? (
+        submission.kind === "my-submission" ? (
           <SubmissionStatusBadge submission={submission.data} />
         ) : null
       }

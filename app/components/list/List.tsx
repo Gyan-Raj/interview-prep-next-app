@@ -41,7 +41,7 @@ export default function List<T extends ListCardItem>({
       {items.map((item) => (
         <ListCard<T>
           key={
-            item.kind === "submission"
+            item.kind === "submission" || item.kind === "my-submission"
               ? item.data.submissionVersionId
               : item.data.id
           }

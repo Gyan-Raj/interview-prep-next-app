@@ -3,6 +3,7 @@ import { InviteRow, QuestionRow, SubmissionRow, UserRow } from "@/app/types";
 // components/ListCard.tsx
 export type ListCardItem =
   | { kind: "submission"; data: SubmissionRow }
+  | { kind: "my-submission"; data: SubmissionRow }
   | { kind: "user"; data: UserRow }
   | { kind: "invite"; data: InviteRow }
   | { kind: "question"; data: QuestionRow };
@@ -18,6 +19,7 @@ type ListCardProps<T extends ListCardItem> = {
   actions?: React.ReactNode;
 
   onCardClick?: (item: T) => void;
+  styles?: {};
 };
 
 export default function ListCard<T extends ListCardItem>({
@@ -28,7 +30,10 @@ export default function ListCard<T extends ListCardItem>({
   badge,
   actions,
   onCardClick,
+  styles,
 }: ListCardProps<T>) {
+  console.log(typeof metaData, "metaData");
+
   return (
     <div
       style={{
@@ -59,6 +64,7 @@ export default function ListCard<T extends ListCardItem>({
             onCardClick?.(item);
           }
         }}
+        style={styles}
       >
         {badge && badge}
 
@@ -72,7 +78,6 @@ export default function ListCard<T extends ListCardItem>({
 
           {metaData && <p className="text-xs opacity-70">{metaData}</p>}
         </div>
-
         <div onClick={(e) => e.stopPropagation()}>{actions}</div>
       </div>
     </div>
