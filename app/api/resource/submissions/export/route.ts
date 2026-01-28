@@ -240,7 +240,6 @@ export async function POST(req: Request) {
 
   for (const version of versions) {
     const interview = version.submission.interview;
-    console.log(interview, "interview");
 
     const groupKey = [
       interview.company.name,

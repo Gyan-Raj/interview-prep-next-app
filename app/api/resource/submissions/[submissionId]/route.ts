@@ -4,7 +4,7 @@ import { prisma } from "@/app/db/prisma";
 
 export async function GET(
   req: Request,
-  context: { params: Promise<{ submissionId: string; isSelf: boolean }> },
+  context: { params: Promise<{ submissionId: string; isSelf?: boolean }> },
 ) {
   const authUser = await getAuthUser();
 
@@ -17,8 +17,6 @@ export async function GET(
 
   const { searchParams } = new URL(req.url);
   const isSelf = searchParams.get("isSelf") === "true";
-  console.log(isSelf, "isSelf");
-  console.log(typeof isSelf, "typeof isSelf");
 
   const latestVersion = await prisma.submissionVersion.findFirst({
     where: {

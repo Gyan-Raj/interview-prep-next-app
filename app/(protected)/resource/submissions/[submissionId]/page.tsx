@@ -77,8 +77,6 @@ export function toSubmissionRow(submission: Submission): SubmissionRow {
 /* -------------------- Component -------------------- */
 
 export default function ResourceSubmissionDetailPage() {
-  console.log("ResourceSubmissionDetailPage");
-
   const { submissionId } = useParams<{ submissionId: string }>();
   const [loading, setLoading] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
@@ -96,7 +94,6 @@ export default function ResourceSubmissionDetailPage() {
         submissionId,
         isSelf: false,
       });
-      console.log(res, "res");
 
       if (res.status === 200) {
         const data = res.data;

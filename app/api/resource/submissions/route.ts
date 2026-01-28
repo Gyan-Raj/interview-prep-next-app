@@ -19,8 +19,6 @@ export async function GET(req: Request) {
   const searchText = searchParams.get("searchText")?.trim();
   const statusParam = searchParams.get("submissionStatuses");
   const isSelf = searchParams.get("isSelf") === "true";
-  console.log(isSelf, "isSelf");
-  console.log(typeof isSelf, "typeof isSelf");
 
   const statuses = statusParam
     ? statusParam

@@ -32,8 +32,6 @@ export default function ListCard<T extends ListCardItem>({
   onCardClick,
   styles,
 }: ListCardProps<T>) {
-  console.log(typeof metaData, "metaData");
-
   return (
     <div
       style={{
