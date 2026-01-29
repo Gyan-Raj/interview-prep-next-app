@@ -26,7 +26,7 @@ export const roleDashboardRoute: Record<RoleOps, string> = {
 
 export async function copyInviteLink(
   invite: InviteRow,
-  onAfterCopy?: () => void
+  onAfterCopy?: () => void,
 ) {
   try {
     const inviteUrl = `${window.location.origin}/accept-invite?token=${invite.id}`;
@@ -71,7 +71,7 @@ export function canAdminDeleteUser(user: UserRow) {
 
 export function canRMDeleteUser(user: UserRow) {
   return !user.roles.some((r) =>
-    ["ADMIN", "RESOURCE MANAGER"].includes(r.name)
+    ["ADMIN", "RESOURCE MANAGER"].includes(r.name),
   );
 }
 
@@ -81,13 +81,13 @@ export function canAdminCancelInvite(invite: InviteRow) {
 
 export function canRMCancelInvite(invite: InviteRow) {
   return !invite.roles.some((r) =>
-    ["ADMIN", "RESOURCE MANAGER"].includes(r.name)
+    ["ADMIN", "RESOURCE MANAGER"].includes(r.name),
   );
 }
 
 export function getConfirmationTitle(
   action: ConfirmAction,
-  entity: ConfirmEntity
+  entity: ConfirmEntity,
 ) {
   let readableAction = "";
   switch (action) {
@@ -109,6 +109,23 @@ export function getConfirmationTitle(
   }
 
   return `${readableAction} ${entity}?`;
+}
+
+export function getConfirmationButtonText(action: ConfirmAction | null) {
+  if (!action) return null;
+  let readableAction = "";
+  switch (action) {
+    case "approved":
+      readableAction = "Approve";
+      break;
+    case "rejected":
+      readableAction = "Reject";
+      break;
+    default:
+      readableAction = toSentenceCase(action);
+      break;
+  }
+  return `${readableAction}`;
 }
 
 export function buildSystemPrompt(role: string): Message {

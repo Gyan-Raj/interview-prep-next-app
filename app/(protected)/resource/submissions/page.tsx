@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useDebounce } from "@/app/hooks/hooks";
 import {
-  getAllQuestions,
   getAllCompanies,
   getAllRoles,
   getAllRounds,
@@ -12,20 +11,15 @@ import {
   downloadSubmissions_Resource,
 } from "@/app/actions";
 import {
-  ConfirmAction,
   FilterConfig,
-  QuestionRow,
   ResourceSubmissionRow,
   SubmissionRow,
 } from "@/app/types";
-import QuestionsList from "@/app/components/questions/QuestionsList";
 import { useRouter } from "next/navigation";
 import FiltersMenu from "@/app/components/filters/FiltersMenu";
 import ListToolbar from "@/app/components/list/ListToolbar";
 import SearchInput from "@/app/components/SearchInput";
 import SubmissionsList from "@/app/components/submissions/SubmissionsList";
-import SubmissionActionsMenu from "@/app/components/submissions/SubmissionActionsMenu";
-import { Download } from "lucide-react";
 import DownloadButton from "@/app/components/DownloadButton";
 
 type Option = {
@@ -123,9 +117,9 @@ function AllApprovedResourceSubmissions() {
         searchText: debouncedQuery,
         submissionStatuses: ["APPROVED"],
         isSelf: false,
-        // roleIds: debouncedRoles,
-        // companyIds: debouncedCompanies,
-        // roundIds: debouncedRounds,
+        roleIds: debouncedRoles,
+        companyIds: debouncedCompanies,
+        roundIds: debouncedRounds,
       });
 
       if (res.status === 200) {

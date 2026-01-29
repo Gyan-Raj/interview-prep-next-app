@@ -4,7 +4,7 @@ import { prisma } from "@/app/db/prisma";
 
 export async function GET(
   req: Request,
-  context: { params: Promise<{ submissionId: string }> }
+  context: { params: Promise<{ submissionVersionId: string }> },
 ) {
   const authUser = await getAuthUser();
 
@@ -13,16 +13,16 @@ export async function GET(
   }
 
   // ✅ MUST await params
-  const { submissionId } = await context.params;
+  const params = await context.params;
 
-  const latestVersion = await prisma.submissionVersion.findFirst({
+  const { submissionVersionId } = await context.params;
+  const count = await prisma.submissionVersion.count({
+    where: { id: submissionVersionId },
+  });
+
+  const latestVersion = await prisma.submissionVersion.findUnique({
     where: {
-      submissionId, // ✅ now correctly applied
-      submission: {
-        interview: {
-          resourceId: authUser.id,
-        },
-      },
+      id: submissionVersionId,
     },
     include: {
       questions: true,
@@ -39,15 +39,12 @@ export async function GET(
         },
       },
     },
-    orderBy: {
-      versionNumber: "desc",
-    },
   });
 
   if (!latestVersion) {
     return NextResponse.json(
       { message: "Submission not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -78,13 +75,13 @@ export async function GET(
         phone: latestVersion.submission.interview.resource.phone,
       },
     },
-    { status: 200 }
+    { status: 200 },
   );
 }
 
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ submissionId: string }> }
+  context: { params: Promise<{ submissionVersionId: string }> },
 ) {
   const authUser = await getAuthUser();
 
@@ -92,13 +89,12 @@ export async function DELETE(
     return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
-  // ✅ FIX: await params
-  const { submissionId } = await context.params;
+  const { submissionVersionId } = await context.params;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       const version = await tx.submissionVersion.findUnique({
-        where: { id: submissionId },
+        where: { id: submissionVersionId },
         include: {
           submission: {
             include: {
@@ -113,7 +109,7 @@ export async function DELETE(
         throw new Error("Submission version not found");
       }
 
-      // Guardrails
+      // Guardrails (your logic is solid)
       if (version.versionNumber !== 1) {
         throw new Error("Only initial submission version can be deleted");
       }
@@ -130,7 +126,6 @@ export async function DELETE(
         throw new Error("Only RM-created submissions can be deleted");
       }
 
-      // Delete in correct order
       await tx.submissionVersion.delete({
         where: { id: version.id },
       });
@@ -143,19 +138,18 @@ export async function DELETE(
         where: { id: version.submission.interviewId },
       });
 
-      return { submissionId };
+      return { submissionVersionId };
     });
 
     return NextResponse.json(
-      { deletedSubmissionVersionId: result.submissionId },
-      { status: 200 }
+      { deletedSubmissionVersionId: result.submissionVersionId },
+      { status: 200 },
     );
   } catch (error: any) {
     console.error("Error deleting submission:", error);
-
     return NextResponse.json(
       { message: error.message || "Failed to delete submission" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

@@ -19,6 +19,9 @@ export async function GET(req: Request) {
   const searchText = searchParams.get("searchText")?.trim();
   const statusParam = searchParams.get("submissionStatuses");
   const isSelf = searchParams.get("isSelf") === "true";
+  const roleIds = searchParams.get("roleIds")?.split(",");
+  const companyIds = searchParams.get("companyIds")?.split(",");
+  const roundIds = searchParams.get("roundIds")?.split(",");
 
   const statuses = statusParam
     ? statusParam
@@ -36,6 +39,26 @@ export async function GET(req: Request) {
       interview: {
         resourceId: authUser.id,
       },
+    };
+  }
+  if (roleIds?.length) {
+    where.interview = {
+      ...(where.interview || {}),
+      roleId: { in: roleIds },
+    };
+  }
+
+  if (companyIds?.length) {
+    where.interview = {
+      ...(where.interview || {}),
+      companyId: { in: companyIds },
+    };
+  }
+
+  if (roundIds?.length) {
+    where.interview = {
+      ...(where.interview || {}),
+      roundId: { in: roundIds },
     };
   }
 

@@ -136,14 +136,17 @@ export default function QuestionDrawer() {
       {/* Question text (fixed, 2-line ellipsis) */}
       {questionText && (
         <div
-          className="px-4 py-3 text-sm line-clamp-2"
+          className="px-4 py-3 text-sm overflow-hidden"
           style={{
+            maxHeight: "4em", // 2 lines × 1.5 line-height
+            lineHeight: "1.5em",
             borderBottom: "1px solid var(--color-border)",
             backgroundColor: "var(--color-panel)",
           }}
-          title={questionText}
         >
-          {questionText}
+          <div className="line-clamp-2 break-words whitespace-normal">
+            {questionText}
+          </div>
         </div>
       )}
 

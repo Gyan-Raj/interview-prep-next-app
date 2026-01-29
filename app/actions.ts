@@ -134,11 +134,11 @@ export async function inviteAction_ResourceManager(
 export async function getSubmissions_ResourceManager(params?: {
   searchText?: string;
   submissionStatuses?: string[];
-  submissionId?: string;
+  submissionVersionId?: string;
 }) {
   return api.get(
-    params?.submissionId
-      ? `/resource-manager/submissions/${params.submissionId}` // ✅ FIX
+    params?.submissionVersionId
+      ? `/resource-manager/submissions/${params.submissionVersionId}` // ✅ FIX
       : `/resource-manager/submissions`,
     {
       params: {
@@ -198,16 +198,22 @@ export async function getSubmissions_Resource(params?: {
   submissionStatuses?: string[];
   submissionId?: string;
   isSelf?: boolean;
+  roleIds?: string[];
+  companyIds?: string[];
+  roundIds?: string[];
 }) {
   return api.get(
     params?.submissionId
-      ? `/resource/submissions/${params.submissionId}` // ✅ FIX
+      ? `/resource/submissions/${params.submissionId}`
       : `/resource/submissions`,
     {
       params: {
-        searchText: params?.searchText, // also fix key name
+        searchText: params?.searchText,
         submissionStatuses: params?.submissionStatuses?.join(","),
         isSelf: params?.isSelf,
+        roleIds: params?.roleIds?.join(","),
+        companyIds: params?.companyIds?.join(","),
+        roundIds: params?.roundIds?.join(","),
       },
     },
   );

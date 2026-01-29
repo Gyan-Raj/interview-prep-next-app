@@ -139,7 +139,7 @@ export default function ResourceManagerDashboardClient({
             )}
             onItemClick={(submission) =>
               router.push(
-                `/resource-manager/submissions/${submission.submissionId}`
+                `/resource-manager/submissions/${submission.submissionVersionId}`
               )
             }
           />

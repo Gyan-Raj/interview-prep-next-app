@@ -25,8 +25,8 @@ export async function GET(req: Request) {
         .map((s) => s.trim())
         .filter((s): s is SubmissionVersionStatus =>
           Object.values(SubmissionVersionStatus).includes(
-            s as SubmissionVersionStatus
-          )
+            s as SubmissionVersionStatus,
+          ),
         )
     : undefined;
 
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
   ) {
     return NextResponse.json(
       { message: "Invalid request payload" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -250,7 +250,7 @@ export async function POST(req: Request) {
         interviewId: result.interview.id,
         submissionId: result.submission.id,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error: any) {
     console.error("Error creating submission request:", error);
@@ -259,7 +259,7 @@ export async function POST(req: Request) {
       {
         message: error.message || "Failed to create submission request",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -285,14 +285,14 @@ export async function PATCH(req: Request) {
   if (!submissionVersionId || !action) {
     return NextResponse.json(
       { message: "submissionVersionId and action are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (action === "REJECTED" && !reason?.trim()) {
     return NextResponse.json(
       { message: "Rejection reason is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -317,14 +317,14 @@ export async function PATCH(req: Request) {
   if (!submissionVersion) {
     return NextResponse.json(
       { message: "Submission version not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   if (submissionVersion.status !== "PENDING_REVIEW") {
     return NextResponse.json(
       { message: "Only PENDING submissions can be reviewed" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

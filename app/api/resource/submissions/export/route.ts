@@ -319,8 +319,6 @@ export async function POST(req: Request) {
       .lineWidth(0.3)
       .strokeColor("#F3F4F6")
       .stroke();
-
-    doc.moveDown(1);
   }
 
   doc.end();

@@ -73,7 +73,9 @@ export default function ConfirmationDialog({
             onClick={onConfirm}
             disabled={loading}
             className={`${
-              action === "delete" ? "btn-danger" : "btn-primary"
+              action === "delete" || action === "rejected"
+                ? "btn-danger"
+                : "btn-primary"
             }  px-4 py-2 text-sm`}
           >
             {confirmLabel ?? toSentenceCase(action)}

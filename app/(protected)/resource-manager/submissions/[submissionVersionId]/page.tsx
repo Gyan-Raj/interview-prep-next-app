@@ -9,7 +9,12 @@ import {
 } from "@/app/actions";
 
 import { statusBadgeClassMap } from "@/app/constants/constants";
-import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
+import {
+  formatDisplayDate,
+  getConfirmationButtonText,
+  getConfirmationTitle,
+  toSentenceCase,
+} from "@/app/utils/utils";
 import { EditActionTypes, Question, SubmissionStatusKey } from "@/app/types";
 import ConfirmationDialog from "@/app/components/ConfirmationDialog";
 
@@ -47,7 +52,8 @@ type Submission = {
 /* -------------------- Component -------------------- */
 
 export default function ResourceSubmissionDetailPage() {
-  const { submissionId } = useParams<{ submissionId: string }>();
+  const { submissionVersionId } = useParams<{ submissionVersionId: string }>();
+
   const [loading, setLoading] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submissionAction, setSubmissionAction] =
@@ -62,11 +68,11 @@ export default function ResourceSubmissionDetailPage() {
   /* -------------------- Fetch -------------------- */
 
   async function fetchSubmission() {
-    if (!submissionId) return;
+    if (!submissionVersionId) return;
 
     setLoading(true);
     try {
-      const res = await getSubmissions_ResourceManager({ submissionId });
+      const res = await getSubmissions_ResourceManager({ submissionVersionId });
 
       if (res.status === 200) {
         const data = res.data;
@@ -82,21 +88,21 @@ export default function ResourceSubmissionDetailPage() {
 
   useEffect(() => {
     fetchSubmission();
-  }, [submissionId]);
+  }, [submissionVersionId]);
 
   /* -------------------- Actions -------------------- */
 
   async function handleUpdateSubmission() {
-    if (!submissionId || !submissionAction) return;
+    if (!submissionVersionId || !submissionAction) return;
     try {
       const res = await updateSubmission_ResourceManager({
-        submissionVersionId: submissionId,
+        submissionVersionId: submissionVersionId,
         action: submissionAction.toUpperCase(),
       });
 
       if (res.status === 200) {
         setShowSubmissionConfirmationDialog(false);
-        router.refresh();
+        fetchSubmission();
       }
     } catch (e) {
       console.error("Error updating submission status", e);
@@ -161,10 +167,10 @@ export default function ResourceSubmissionDetailPage() {
             {submission?.status === "PENDING_REVIEW"
               ? "Submitted questions"
               : submission?.status === "REJECTED"
-              ? "Rejected questions"
-              : submission?.status === "APPROVED"
-              ? "Questions:"
-              : ""}
+                ? "Rejected questions"
+                : submission?.status === "APPROVED"
+                  ? "Questions:"
+                  : ""}
           </div>
           <ol className="list-decimal pl-5 space-y-2 text-sm">
             {submission.questions.map((q) => (
@@ -176,19 +182,10 @@ export default function ResourceSubmissionDetailPage() {
         </>
       </div>
       {/* ================= FOOTER ACTIONS ================= */}
-      {needAction && submissionId && (
+      {needAction && submissionVersionId && (
         <div className="px-2 py-1 flex justify-end items-center gap-6 w-full text-sm">
           <button
             className="btn-secondary px-4 py-2"
-            onClick={() => {
-              setSubmissionAction("approved");
-              setShowSubmissionConfirmationDialog(true);
-            }}
-          >
-            Approve
-          </button>
-          <button
-            className="btn-primary px-4 py-2"
             onClick={() => {
               setSubmissionAction("rejected");
               setShowSubmissionConfirmationDialog(true);
@@ -196,33 +193,44 @@ export default function ResourceSubmissionDetailPage() {
             disabled={submission.questions.length === 0}
           >
             Reject
+          </button>{" "}
+          <button
+            className="btn-primary px-4 py-2"
+            onClick={() => {
+              setSubmissionAction("approved");
+              setShowSubmissionConfirmationDialog(true);
+            }}
+          >
+            Approve
           </button>
         </div>
       )}
-      {showSubmissionConfirmationDialog && submissionId && needAction && (
-        <ConfirmationDialog
-          open={showSubmissionConfirmationDialog}
-          action={submissionAction as EditActionTypes}
-          entity="invite"
-          details={
-            <>
-              <div className="font-medium">
-                {submission.interview.companyName ?? "—"}
-                {" - "}
-                {submission.interview.round ?? "—"}
-              </div>
-              <div className="opacity-70 text-sm">
-                {submission.resource?.name} {submission.resource?.email ?? ""}
-                {submission.resource?.phone ?? ""}
-              </div>
-            </>
-          }
-          confirmLabel={`Yes ${submissionAction}`}
-          cancelLabel="No"
-          onCancel={() => setShowSubmissionConfirmationDialog(false)}
-          onConfirm={handleUpdateSubmission}
-        />
-      )}
+      {showSubmissionConfirmationDialog &&
+        submissionVersionId &&
+        needAction && (
+          <ConfirmationDialog
+            open={showSubmissionConfirmationDialog}
+            action={submissionAction as EditActionTypes}
+            entity="invite"
+            details={
+              <>
+                <div className="font-medium">
+                  {submission.interview.companyName ?? "—"}
+                  {" - "}
+                  {submission.interview.round ?? "—"}
+                </div>
+                <div className="opacity-70 text-sm">
+                  {submission.resource?.name} {submission.resource?.email ?? ""}
+                  {submission.resource?.phone ?? ""}
+                </div>
+              </>
+            }
+            confirmLabel={`${getConfirmationButtonText(submissionAction)}`}
+            cancelLabel="No"
+            onCancel={() => setShowSubmissionConfirmationDialog(false)}
+            onConfirm={handleUpdateSubmission}
+          />
+        )}
     </div>
   );
 }

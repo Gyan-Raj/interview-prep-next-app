@@ -91,7 +91,7 @@ export async function DELETE(req: Request) {
   if (!userId) {
     return NextResponse.json(
       { message: "userId is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -99,7 +99,7 @@ export async function DELETE(req: Request) {
   if (userId === authUser.id) {
     return NextResponse.json(
       { message: "You cannot delete your own account" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -123,13 +123,13 @@ export async function DELETE(req: Request) {
   const authUserRoleRank = ROLE_RANK[authUser.activeRole.name];
 
   const targetMaxRank = Math.max(
-    ...user.roles.map((ur) => ROLE_RANK[ur.role.name])
+    ...user.roles.map((ur) => ROLE_RANK[ur.role.name]),
   );
 
   if (targetMaxRank >= authUserRoleRank) {
     return NextResponse.json(
       { message: "You cannot delete users with the same or higher role" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -146,7 +146,7 @@ export async function DELETE(req: Request) {
     if (adminCount <= 1) {
       return NextResponse.json(
         { message: "Cannot delete the last admin user" },
-        { status: 400 }
+        { status: 400 },
       );
     }
   }
@@ -167,6 +167,6 @@ export async function DELETE(req: Request) {
   // 7️⃣ Admin-safe response
   return NextResponse.json(
     { message: "User deleted successfully" },
-    { status: 200 }
+    { status: 200 },
   );
 }

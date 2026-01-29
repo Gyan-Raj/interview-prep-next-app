@@ -43,7 +43,7 @@ export async function POST() {
 
   // Issue new access token
   const accessToken = jwt.sign({ sub: matchedSession.userId }, SECRET_KEY, {
-    expiresIn: "60m",
+    expiresIn: "7d",
   });
 
   const response = NextResponse.json({ success: true });
@@ -51,7 +51,7 @@ export async function POST() {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60,
+    maxAge: 7 * 24 * 60 * 60,
     path: "/",
   });
 

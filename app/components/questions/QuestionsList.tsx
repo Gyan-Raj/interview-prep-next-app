@@ -1,7 +1,7 @@
-// app/components/SubmissionsList.tsx
+// app\components\questions\QuestionsList.tsx
 import List from "@/app/components/list/List";
 import { QuestionRow } from "@/app/types";
-import { formatDisplayDate, toSentenceCase } from "@/app/utils/utils";
+import { formatDisplayDate } from "@/app/utils/utils";
 
 export default function QuestionsList({
   questions,
