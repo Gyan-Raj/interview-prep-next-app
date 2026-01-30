@@ -13,7 +13,7 @@ import {
 } from "@/app/types";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/app/hooks/hooks";
-import { toSentenceCase } from "@/app/utils/utils";
+import { getConfirmationButtonText, toSentenceCase } from "@/app/utils/utils";
 import RequestSubmissionModal from "@/app/(protected)/resource-manager/submissions/RequestSubmissionModal";
 import { SUBMISSION_STATUS_CONFIG } from "@/app/constants/constants";
 import { useRouter } from "next/navigation";
@@ -40,6 +40,8 @@ export default function ResourceManagerSubmissions() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showAddSubmission, setShowAddSubmission] = useState(false);
   const [editAction, setEditAction] = useState<EditActionTypes>("approved");
+  const [rejectedReason, setRejectedReason] = useState<string>("");
+  const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const allSubmissionStatus = SUBMISSION_STATUS_CONFIG;
   const [selectedSubmissionStatus, setSelectedSubmissionStatus] = useState<
@@ -74,7 +76,7 @@ export default function ResourceManagerSubmissions() {
 
   const debouncedSubmissionStatuses = useDebounce(
     selectedSubmissionStatus,
-    400
+    400,
   );
 
   useEffect(() => {
@@ -84,17 +86,23 @@ export default function ResourceManagerSubmissions() {
   }, [debouncedQuery, debouncedSubmissionStatuses]);
 
   async function updateSubmissionStatus() {
+    if (!selectedSubmissionVersion) return;
     try {
-      if (!selectedSubmissionVersion) return;
       let res;
       if (editAction === "delete") {
         res = await deleteSubmission_ResourceManager({
           submissionId: selectedSubmissionVersion.submissionVersionId,
         });
       } else {
+        if (editAction === "rejected" && !rejectedReason) {
+          setRejectionError("Enter the reason for rejection");
+        } else {
+          setRejectionError(null);
+        }
         res = await updateSubmission_ResourceManager({
           submissionVersionId: selectedSubmissionVersion.submissionVersionId,
           action: editAction.toUpperCase(), // "APPROVED" | "REJECTED" | "DELETE"
+          reason: rejectedReason,
         });
       }
       if (res.status === 200) {
@@ -104,7 +112,7 @@ export default function ResourceManagerSubmissions() {
     } catch (error) {
       console.error(
         "Error updating submission status(api/resource-manager/submission)",
-        error
+        error,
       );
     }
   }
@@ -123,13 +131,13 @@ export default function ResourceManagerSubmissions() {
         setSelectedSubmissionStatus((prev) =>
           prev.includes(id as SubmissionStatusKey)
             ? prev.filter((x) => x !== id)
-            : [...prev, id as SubmissionStatusKey]
+            : [...prev, id as SubmissionStatusKey],
         );
       },
       onSelectAll: () => {
         if (!isAllSubmissionStatusSelected) {
           setSelectedSubmissionStatus(
-            submissionStatusOptions.map((o) => o.id as SubmissionStatusKey)
+            submissionStatusOptions.map((o) => o.id as SubmissionStatusKey),
           );
         }
       },
@@ -195,7 +203,7 @@ export default function ResourceManagerSubmissions() {
           }}
           onItemClick={(submission) =>
             router.push(
-              `/resource-manager/submissions/${submission.submissionVersionId}`
+              `/resource-manager/submissions/${submission.submissionVersionId}`,
             )
           }
           isLoading={isLoading}
@@ -209,13 +217,39 @@ export default function ResourceManagerSubmissions() {
           entity="submission"
           details={
             <>
-              <div>{selectedSubmissionVersion.interview.companyName}</div>
-              <div className="opacity-70">
-                {selectedSubmissionVersion.interview.role} ·{" "}
-                {selectedSubmissionVersion.interview.round}
+              <div className="font-medium">
+                {selectedSubmissionVersion.interview.companyName ?? "—"}
+                {" - "}
+                {selectedSubmissionVersion.interview.round ?? "—"}
               </div>
+              <div className="opacity-70 text-sm">
+                {selectedSubmissionVersion.resource?.name}{" "}
+                {selectedSubmissionVersion.resource?.email ?? ""}
+                {selectedSubmissionVersion.resource?.phone ?? ""}
+              </div>
+              {editAction === "rejected" && (
+                <div className="mt-4">
+                  <label className="block text-xs font-medium mb-1">
+                    Add a comment
+                    <sup className="text-red-600">*</sup>{" "}
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={rejectedReason}
+                    onChange={(e) => setRejectedReason(e.target.value)}
+                    placeholder="Add a reason or feedback for rejection"
+                    className="w-full resize-none rounded-md px-3 py-2 text-sm bg-transparent border border-black/20 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                  />
+                  {rejectionError && (
+                    <span className="text-red-600 text-xs">
+                      {rejectionError}
+                    </span>
+                  )}
+                </div>
+              )}
             </>
           }
+          confirmLabel={`${getConfirmationButtonText(editAction)}`}
           onCancel={() => setShowConfirmDialog(false)}
           onConfirm={updateSubmissionStatus}
         />

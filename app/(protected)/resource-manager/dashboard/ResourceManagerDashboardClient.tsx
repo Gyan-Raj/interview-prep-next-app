@@ -7,7 +7,11 @@ import {
   InviteRow,
   SubmissionRow,
 } from "@/app/types";
-import { canRMCancelInvite, toSentenceCase } from "@/app/utils/utils";
+import {
+  canRMCancelInvite,
+  getConfirmationButtonText,
+  toSentenceCase,
+} from "@/app/utils/utils";
 import {
   inviteAction_ResourceManager,
   updateSubmission_ResourceManager,
@@ -48,11 +52,13 @@ export default function ResourceManagerDashboardClient({
   const [submissionAction, setSubmissionAction] =
     useState<EditActionTypes | null>(null);
   const [inviteAction, setInviteAction] = useState<ConfirmAction | null>(null);
+  const [rejectedReason, setRejectedReason] = useState<string>("");
+  const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const router = useRouter();
 
   const roleCountMap = new Map(
-    roleCounts.map((rc) => [rc.roleId, rc._count.roleId])
+    roleCounts.map((rc) => [rc.roleId, rc._count.roleId]),
   );
 
   async function handleInviteAction() {
@@ -60,7 +66,7 @@ export default function ResourceManagerDashboardClient({
     try {
       const res = await inviteAction_ResourceManager(
         selectedInvite.id,
-        inviteAction
+        inviteAction,
       );
 
       if (res && res.status === 200) {
@@ -75,10 +81,16 @@ export default function ResourceManagerDashboardClient({
 
   async function handleUpdateSubmission() {
     if (!selectedSubmission || !submissionAction) return;
+    if (submissionAction === "rejected" && !rejectedReason) {
+      setRejectionError("Enter the reason for rejection");
+    } else {
+      setRejectionError(null);
+    }
     try {
       const res = await updateSubmission_ResourceManager({
         submissionVersionId: selectedSubmission.submissionVersionId,
         action: submissionAction.toUpperCase(),
+        reason: rejectedReason,
       });
 
       if (res.status === 200) {
@@ -139,7 +151,7 @@ export default function ResourceManagerDashboardClient({
             )}
             onItemClick={(submission) =>
               router.push(
-                `/resource-manager/submissions/${submission.submissionVersionId}`
+                `/resource-manager/submissions/${submission.submissionVersionId}`,
               )
             }
           />
@@ -202,7 +214,7 @@ export default function ResourceManagerDashboardClient({
           <ConfirmationDialog
             open={showSubmissionConfirmationDialog}
             action={submissionAction}
-            entity="invite"
+            entity="submission"
             details={
               <>
                 <div className="font-medium">
@@ -215,10 +227,29 @@ export default function ResourceManagerDashboardClient({
                   {selectedSubmission.resource?.email ?? ""}
                   {selectedSubmission.resource?.phone ?? ""}
                 </div>
+                {submissionAction === "rejected" && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium mb-1">
+                      Add a comment
+                      <sup className="text-red-600">*</sup>{" "}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={rejectedReason}
+                      onChange={(e) => setRejectedReason(e.target.value)}
+                      placeholder="Add a reason or feedback for rejection"
+                      className="w-full resize-none rounded-md px-3 py-2 text-sm bg-transparent border border-black/20 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                    />
+                    {rejectionError && (
+                      <span className="text-red-600 text-xs">
+                        {rejectionError}
+                      </span>
+                    )}
+                  </div>
+                )}
               </>
             }
-            confirmLabel={`Yes ${submissionAction}`}
-            cancelLabel="No"
+            confirmLabel={`${getConfirmationButtonText(submissionAction)}`}
             onCancel={() => setShowSubmissionConfirmationDialog(false)}
             onConfirm={handleUpdateSubmission}
           />

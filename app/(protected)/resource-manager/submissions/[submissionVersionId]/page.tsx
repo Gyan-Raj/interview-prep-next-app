@@ -47,6 +47,7 @@ type Submission = {
   submittedAt: string | null;
   versionNumber: number;
   resource: Resource;
+  rejectionReason?: string;
 };
 
 /* -------------------- Component -------------------- */
@@ -59,6 +60,8 @@ export default function ResourceSubmissionDetailPage() {
   const [submissionAction, setSubmissionAction] =
     useState<EditActionTypes | null>(null);
   const [needAction, setNeedAction] = useState<boolean>(false);
+  const [rejectedReason, setRejectedReason] = useState<string>("");
+  const [rejectionError, setRejectionError] = useState<string | null>(null);
   const [
     showSubmissionConfirmationDialog,
     setShowSubmissionConfirmationDialog,
@@ -94,10 +97,16 @@ export default function ResourceSubmissionDetailPage() {
 
   async function handleUpdateSubmission() {
     if (!submissionVersionId || !submissionAction) return;
+    if (submissionAction === "rejected" && !rejectedReason) {
+      setRejectionError("Enter the reason for rejection");
+    } else {
+      setRejectionError(null);
+    }
     try {
       const res = await updateSubmission_ResourceManager({
         submissionVersionId: submissionVersionId,
         action: submissionAction.toUpperCase(),
+        reason: rejectedReason,
       });
 
       if (res.status === 200) {
@@ -155,10 +164,22 @@ export default function ResourceSubmissionDetailPage() {
           </div>
         </div>
       </div>
+      {/* ================= REJECTION REASON ================= */}
+      {submission.rejectionReason && (
+        <div className="px-6 py-4 border-b border-amber-600">
+          <div className="text-sm  opacity-70 mb-2">Reason for rejection:</div>
+
+          <p className="text-sm leading-relaxed opacity-80 whitespace-pre-wrap max-h-24 overflow-y-auto pr-2">
+            {submission.rejectionReason}
+          </p>
+        </div>
+      )}
+
       {/* ================= SCROLLABLE QUESTIONS ================= */}
+
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {/* Empty */}
-        {submission.questions.length === 0 && (
+        {submission.questions.length === 0 && !loading && (
           <div className="text-sm opacity-70">No submitted questions.</div>
         )}
 
@@ -185,7 +206,7 @@ export default function ResourceSubmissionDetailPage() {
       {needAction && submissionVersionId && (
         <div className="px-2 py-1 flex justify-end items-center gap-6 w-full text-sm">
           <button
-            className="btn-secondary px-4 py-2"
+            className="btn-danger px-4 py-2"
             onClick={() => {
               setSubmissionAction("rejected");
               setShowSubmissionConfirmationDialog(true);
@@ -211,7 +232,7 @@ export default function ResourceSubmissionDetailPage() {
           <ConfirmationDialog
             open={showSubmissionConfirmationDialog}
             action={submissionAction as EditActionTypes}
-            entity="invite"
+            entity="submission"
             details={
               <>
                 <div className="font-medium">
@@ -223,10 +244,29 @@ export default function ResourceSubmissionDetailPage() {
                   {submission.resource?.name} {submission.resource?.email ?? ""}
                   {submission.resource?.phone ?? ""}
                 </div>
+                {submissionAction === "rejected" && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium mb-1">
+                      Add a comment
+                      <sup className="text-red-600">*</sup>{" "}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={rejectedReason}
+                      onChange={(e) => setRejectedReason(e.target.value)}
+                      placeholder="Add a reason or feedback for rejection"
+                      className="w-full resize-none rounded-md px-3 py-2 text-sm bg-transparent border border-black/20 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                    />
+                    {rejectionError && (
+                      <span className="text-red-600 text-xs">
+                        {rejectionError}
+                      </span>
+                    )}
+                  </div>
+                )}
               </>
             }
             confirmLabel={`${getConfirmationButtonText(submissionAction)}`}
-            cancelLabel="No"
             onCancel={() => setShowSubmissionConfirmationDialog(false)}
             onConfirm={handleUpdateSubmission}
           />

@@ -28,6 +28,22 @@ export async function GET(
       },
     },
     include: {
+      reviews: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1, // ✅ latest review only
+        select: {
+          decision: true,
+          reason: true,
+          reviewedAt: true,
+          reviewedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       questions: true,
       submission: {
         include: {
@@ -53,6 +69,7 @@ export async function GET(
       { status: 404 },
     );
   }
+  const latestReview = latestVersion.reviews[0];
 
   return NextResponse.json(
     {
@@ -61,6 +78,10 @@ export async function GET(
       versionNumber: latestVersion.versionNumber,
       submittedAt: latestVersion.submittedAt,
       status: isSelf ? latestVersion.status : null,
+      rejectionReason:
+        latestVersion.status === "REJECTED"
+          ? (latestReview?.reason ?? null)
+          : null,
       interview: {
         id: latestVersion.submission.interview.id,
         companyName: latestVersion.submission.interview.company.name,

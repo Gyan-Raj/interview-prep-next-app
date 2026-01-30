@@ -82,6 +82,22 @@ export async function GET(req: Request) {
       }),
     },
     include: {
+      reviews: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1,
+        select: {
+          decision: true,
+          reason: true,
+          reviewedAt: true,
+          reviewedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       submission: {
         include: {
           interview: {
@@ -99,28 +115,34 @@ export async function GET(req: Request) {
   });
 
   // 5️⃣ Shape response
-  const response = latestVersions.map((v) => ({
-    submissionId: v.submissionId,
-    submissionVersionId: v.id,
-    versionNumber: v.versionNumber,
-    status: v.status,
-    submittedAt: v.submittedAt,
+  const response = latestVersions.map((v) => {
+    const latestReview = v.reviews[0]; // may be undefined
 
-    interview: {
-      id: v.submission.interview.id,
-      companyName: v.submission.interview.company.name,
-      role: v.submission.interview.role.name,
-      round: v.submission.interview.round.name,
-      interviewDate: v.submission.interview.interviewDate.toISOString(),
-    },
+    return {
+      submissionId: v.submissionId,
+      submissionVersionId: v.id,
+      versionNumber: v.versionNumber,
+      status: v.status,
+      submittedAt: v.submittedAt,
 
-    resource: {
-      id: v.submission.interview.resource.id,
-      name: v.submission.interview.resource.name,
-      email: v.submission.interview.resource.email,
-      phone: v.submission.interview.resource.phone,
-    },
-  }));
+      rejectionReason:
+        v.status === "REJECTED" ? (latestReview?.reason ?? null) : null,
+      interview: {
+        id: v.submission.interview.id,
+        companyName: v.submission.interview.company.name,
+        role: v.submission.interview.role.name,
+        round: v.submission.interview.round.name,
+        interviewDate: v.submission.interview.interviewDate.toISOString(),
+      },
+
+      resource: {
+        id: v.submission.interview.resource.id,
+        name: v.submission.interview.resource.name,
+        email: v.submission.interview.resource.email,
+        phone: v.submission.interview.resource.phone,
+      },
+    };
+  });
 
   return NextResponse.json(response, { status: 200 });
 }

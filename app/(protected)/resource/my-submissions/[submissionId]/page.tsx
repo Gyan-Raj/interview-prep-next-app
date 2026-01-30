@@ -44,6 +44,7 @@ type Submission = {
   submittedAt: string | null;
   versionNumber: number;
   resource: Resource;
+  rejectionReason?: string;
 };
 
 /* -------------------- Helpers -------------------- */
@@ -170,7 +171,16 @@ export default function ResourceSubmissionDetailPage() {
         }
         styles={{ cursor: "auto" }}
       />
+      {/* ================= REJECTION REASON ================= */}
+      {submission.rejectionReason && (
+        <div className="px-6 py-4 border-b border-amber-600">
+          <div className="text-sm  opacity-70 mb-2">Reason for rejection:</div>
 
+          <p className="text-sm leading-relaxed opacity-80 whitespace-pre-wrap max-h-24 overflow-y-auto pr-2">
+            {submission.rejectionReason}
+          </p>
+        </div>
+      )}
       {/* ================= SCROLLABLE QUESTIONS ================= */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {/* Empty */}

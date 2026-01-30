@@ -12,20 +12,27 @@ export async function GET(
     return NextResponse.json({ message: "Forbidden" }, { status: 401 });
   }
 
-  // ✅ MUST await params
-  const params = await context.params;
-
   const { submissionVersionId } = await context.params;
-  const count = await prisma.submissionVersion.count({
+  const submissionVersion = await prisma.submissionVersion.findUnique({
     where: { id: submissionVersionId },
-  });
-
-  const latestVersion = await prisma.submissionVersion.findUnique({
-    where: {
-      id: submissionVersionId,
-    },
     include: {
       questions: true,
+      reviews: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1, // ✅ latest review only
+        select: {
+          decision: true,
+          reason: true,
+          reviewedAt: true,
+          reviewedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       submission: {
         include: {
           interview: {
@@ -41,38 +48,43 @@ export async function GET(
     },
   });
 
-  if (!latestVersion) {
+  if (!submissionVersion) {
     return NextResponse.json(
       { message: "Submission not found" },
       { status: 404 },
     );
   }
+  const latestReview = submissionVersion.reviews[0];
 
   return NextResponse.json(
     {
-      submissionId: latestVersion.submissionId,
-      submissionVersionId: latestVersion.id,
-      versionNumber: latestVersion.versionNumber,
-      submittedAt: latestVersion.submittedAt,
-      status: latestVersion.status,
+      submissionId: submissionVersion.submissionId,
+      submissionVersionId: submissionVersion.id,
+      versionNumber: submissionVersion.versionNumber,
+      submittedAt: submissionVersion.submittedAt,
+      status: submissionVersion.status,
+      rejectionReason:
+        submissionVersion.status === "REJECTED"
+          ? (latestReview?.reason ?? null)
+          : null,
       interview: {
-        id: latestVersion.submission.interview.id,
-        companyName: latestVersion.submission.interview.company.name,
-        role: latestVersion.submission.interview.role.name,
-        round: latestVersion.submission.interview.round.name,
+        id: submissionVersion.submission.interview.id,
+        companyName: submissionVersion.submission.interview.company.name,
+        role: submissionVersion.submission.interview.role.name,
+        round: submissionVersion.submission.interview.round.name,
         interviewDate:
-          latestVersion.submission.interview.interviewDate.toISOString(),
+          submissionVersion.submission.interview.interviewDate.toISOString(),
       },
-      questions: latestVersion.questions.map((q) => ({
+      questions: submissionVersion.questions.map((q) => ({
         id: q.id,
         question: q,
         createdAt: q.createdAt.toISOString(),
       })),
       resource: {
-        id: latestVersion.submission.interview.resource.id,
-        name: latestVersion.submission.interview.resource.name,
-        email: latestVersion.submission.interview.resource.email,
-        phone: latestVersion.submission.interview.resource.phone,
+        id: submissionVersion.submission.interview.resource.id,
+        name: submissionVersion.submission.interview.resource.name,
+        email: submissionVersion.submission.interview.resource.email,
+        phone: submissionVersion.submission.interview.resource.phone,
       },
     },
     { status: 200 },
