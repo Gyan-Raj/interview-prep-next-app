@@ -213,9 +213,14 @@ export async function PATCH(req: Request) {
 
   // 4️⃣ SUBMIT → create NEW version
   if (action === "submit") {
-    if (latestVersion.status !== "DRAFT") {
+    if (
+      latestVersion.status !== "DRAFT" &&
+      latestVersion.status !== "REJECTED"
+    ) {
       return NextResponse.json(
-        { message: "Only DRAFT submissions can be submitted" },
+        {
+          message: "Only DRAFT or REJECTED submissions can be submitted",
+        },
         { status: 400 },
       );
     }

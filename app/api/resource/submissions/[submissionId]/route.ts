@@ -69,7 +69,26 @@ export async function GET(
       { status: 404 },
     );
   }
-  const latestReview = latestVersion.reviews[0];
+
+  let lastRejectedReason: string | null = null;
+  if (latestVersion.status !== "APPROVED") {
+    const lastRejectedReview = await prisma.review.findFirst({
+      where: {
+        decision: "REJECTED",
+        submissionVersion: {
+          submissionId: latestVersion.submissionId,
+        },
+      },
+      orderBy: {
+        reviewedAt: "desc",
+      },
+      select: {
+        reason: true,
+      },
+    });
+
+    lastRejectedReason = lastRejectedReview?.reason ?? null;
+  }
 
   return NextResponse.json(
     {
@@ -79,9 +98,8 @@ export async function GET(
       submittedAt: latestVersion.submittedAt,
       status: isSelf ? latestVersion.status : null,
       rejectionReason:
-        latestVersion.status === "REJECTED"
-          ? (latestReview?.reason ?? null)
-          : null,
+        latestVersion.status === "APPROVED" ? null : lastRejectedReason,
+
       interview: {
         id: latestVersion.submission.interview.id,
         companyName: latestVersion.submission.interview.company.name,

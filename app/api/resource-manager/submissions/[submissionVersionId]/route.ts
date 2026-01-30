@@ -13,6 +13,7 @@ export async function GET(
   }
 
   const { submissionVersionId } = await context.params;
+
   const submissionVersion = await prisma.submissionVersion.findUnique({
     where: { id: submissionVersionId },
     include: {
@@ -54,7 +55,26 @@ export async function GET(
       { status: 404 },
     );
   }
-  const latestReview = submissionVersion.reviews[0];
+
+  let lastRejectedReason: string | null = null;
+  if (submissionVersion.status !== "APPROVED") {
+    const lastRejectedReview = await prisma.review.findFirst({
+      where: {
+        decision: "REJECTED",
+        submissionVersion: {
+          submissionId: submissionVersion.submissionId,
+        },
+      },
+      orderBy: {
+        reviewedAt: "desc",
+      },
+      select: {
+        reason: true,
+      },
+    });
+
+    lastRejectedReason = lastRejectedReview?.reason ?? null;
+  }
 
   return NextResponse.json(
     {
@@ -64,9 +84,7 @@ export async function GET(
       submittedAt: submissionVersion.submittedAt,
       status: submissionVersion.status,
       rejectionReason:
-        submissionVersion.status === "REJECTED"
-          ? (latestReview?.reason ?? null)
-          : null,
+        submissionVersion.status === "APPROVED" ? null : lastRejectedReason,
       interview: {
         id: submissionVersion.submission.interview.id,
         companyName: submissionVersion.submission.interview.company.name,

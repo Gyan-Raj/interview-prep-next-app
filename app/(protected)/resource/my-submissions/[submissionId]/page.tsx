@@ -173,10 +173,18 @@ export default function ResourceSubmissionDetailPage() {
       />
       {/* ================= REJECTION REASON ================= */}
       {submission.rejectionReason && (
-        <div className="px-6 py-4 border-b border-amber-600">
-          <div className="text-sm  opacity-70 mb-2">Reason for rejection:</div>
+        <div className="px-6 py-4 border-b border-(--color-danger)">
+          <div className="text-sm opacity-70 mb-2">
+            {submission.status === "PENDING_REVIEW" ? (
+              <>
+                <u className="text-(--color-danger-text)">Was rejected for</u>:
+              </>
+            ) : (
+              "Reason for rejection:"
+            )}
+          </div>
 
-          <p className="text-sm leading-relaxed opacity-80 whitespace-pre-wrap max-h-24 overflow-y-auto pr-2">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap max-h-24 overflow-y-auto pr-2">
             {submission.rejectionReason}
           </p>
         </div>
